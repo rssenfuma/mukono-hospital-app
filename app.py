@@ -8,7 +8,7 @@ from datetime import datetime
 # 1. GLOBAL PAGE ARCHITECTURE & PROFESSIONAL STYLING
 # ==============================================================================
 st.set_page_config(
-    page_title="Mukono Hospital Neonatal CDSS Portal",
+    page_title="MGH-Neonates",
     page_icon="🏥",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -139,7 +139,7 @@ if birth_weight >= 3.5: base_score -= 0.05
 if maternal_age < 18 or maternal_age > 38: base_score += 0.12 
 if length_of_stay > 5: base_score += 0.14      
 if gestational_age < 37: base_score += 0.12    
-if apgar_score < 6: base_score += 0.10         
+if apgar_score < 6: base_score += 0.10          
 
 readmission_probability = float(np.clip(base_score, 0.15, 0.95))
 
@@ -157,9 +157,10 @@ st.markdown("""
 if "assessment_triggered" not in st.session_state:
     st.session_state.assessment_triggered = False
 
-if st.button("🚀 Execute Clinical Risk Assessment", type="primary") or st.session_state.assessment_triggered:
+if st.button("🚀 Execute Clinical Risk Assessment", type="primary"):
     st.session_state.assessment_triggered = True
-    
+
+if st.session_state.assessment_triggered:
     # Process risk thresholds and resolve precise decision paths
     if readmission_probability >= 0.70:
         risk_tier, alert_color = "High Risk", "error"
@@ -233,9 +234,10 @@ if st.button("🚀 Execute Clinical Risk Assessment", type="primary") or st.sess
                 "Attending Clinician Sign-off": signature
             }
             save_prediction_to_records(patient_record)
+            st.success(f"🎉 Success! Profile for {patient_id} recorded safely into the clinical audit trail.")
             st.toast(f"💾 Profile for {patient_id} recorded successfully!", icon="🎉")
-            st.session_state.assessment_triggered = False  # Reset panel
-            st.rerun()
+            st.session_state.assessment_triggered = False  # Reset panel memory state
+            st.button("🔄 Refresh Application View", on_click=st.rerun)
 
 # ==============================================================================
 # 6. EXPANDED HISTORICAL AUDIT TRAIL LOG SHEET (WITH EXACT PHRASING)
