@@ -124,8 +124,8 @@ birth_weight = st.sidebar.slider("Birth Weight (kg)", min_value=0.5, max_value=5
 st.sidebar.markdown("<div style='color:#000000; font-size:14px; margin-top:5px;'>Maternal Age (Years)</div>", unsafe_allow_html=True)
 maternal_age = st.sidebar.slider("Maternal Age (Years)", min_value=12, max_value=45, value=30, step=1, label_visibility="collapsed")
 
-st.sidebar.markdown("<div style='color:#000000; font-size:14px; margin-top:5px;'>Initial Ward Stay (Days)</div>", unsafe_allow_html=True)
-length_of_stay = st.sidebar.slider("Initial Ward Stay (Days)", min_value=1, max_value=30, value=3, step=1, label_visibility="collapsed")
+st.sidebar.markdown("<div style='color:#000000; font-size:14px; margin-top:5px;'>Duration of Initial Hospital Stay (Days)</div>", unsafe_allow_html=True)
+length_of_stay = st.sidebar.slider("Duration of Initial Hospital Stay (Days)", min_value=1, max_value=30, value=3, step=1, label_visibility="collapsed")
 
 st.sidebar.markdown("<div style='color:#000000; font-size:14px; margin-top:5px;'>Gestational Age (Weeks)</div>", unsafe_allow_html=True)
 gestational_age = st.sidebar.slider("Gestational Age (Weeks)", min_value=20, max_value=42, value=35, step=1, label_visibility="collapsed")
@@ -266,7 +266,7 @@ if st.button("💾 Save Decision to Clinical Ledger"):
             "Birth Weight (kg)": birth_weight,
             "Gestational Age (Weeks)": gestational_age,
             "Maternal Age (Years)": maternal_age,
-            "Initial Ward Stay (Days)": length_of_stay,
+            "Duration of Initial Hospital Stay (Days)": length_of_stay,
             "5-Min Apgar Score": apgar_score,
             "ANC Visits Attended": anc_visits,
             "Maternal Parity": parity,
