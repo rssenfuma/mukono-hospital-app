@@ -117,7 +117,7 @@ patient_id = st.sidebar.text_input(
 
 # Section 3.2: High-Weight Predictors (Top 4 Features Verified in Chapter 6)
 st.sidebar.markdown("---")
-st.sidebar.markdown("<div style='color:#000000; font-weight:bold;'>🔥 Core Mathematical Predictors</div>", unsafe_allow_html=True)
+st.sidebar.markdown("<div style='color:#000000; font-weight:bold;'>Core Mathematical Predictors</div>", unsafe_allow_html=True)
 st.sidebar.markdown("<div style='color:#000000; font-size:14px; margin-top:5px;'>Birth Weight (kg)</div>", unsafe_allow_html=True)
 birth_weight = st.sidebar.slider("Birth Weight (kg)", min_value=0.5, max_value=5.5, value=2.9, step=0.1, label_visibility="collapsed")
 
@@ -177,7 +177,7 @@ if readmission_probability >= 0.70:
 elif readmission_probability >= 0.35:
     risk_tier, alert_color = "Medium Risk", "warning"
     guidelines = "⚠️ MODERATE CAUTION STRATIFICATION REQUIRED (YELLOW TIER): Ward Management: Clear for discharge only after nursing staff double-check maternal breastfeeding mechanics. | Education: Provide direct, face-to-face maternal counseling on neonatal thermal regulation guidelines. | Follow-Up: Automatically place the profile onto the hospital's Day-7 phone-based automated wellness tracking queue."
-    final_decision_path = "🟡 APPROVED DISCHARGE: Clear for Postnatal Release following successful Nurse-Verified Feeding & Warmth Audits"
+    final_decision_path = "APPROVED DISCHARGE: Clear for Postnatal Release following successful Nurse-Verified Feeding & Warmth Audits"
 else:
     risk_tier, alert_color = "Low Risk", "success"
     guidelines = "✅ ROUTINE OUTPATIENT CARE AUTHORIZED (GREEN TIER): Ward Management: Authorized for standard, timely postnatal ward discharge. | Documentation: Provide standard maternal postpartum wellness literature and print the routine UNEPI immunization tracking schedule."
@@ -203,7 +203,7 @@ if st.button("🚀 Execute Clinical Risk Assessment", type="primary"):
 # Display Real-Time Analysis if triggered
 if st.session_state.assessment_triggered:
     st.write("")
-    st.markdown(f"### Diagnostic Breakdown for **Patient ID: {patient_id}**")
+    st.markdown(f"### Diagnostic Breakdown for: {patient_id}")
     status_text = f"Assigned Classification Status: {risk_tier.upper()} | Calculated Risk Ratio: {readmission_probability*100:.1f}%"
     
     if alert_color == "error":
@@ -217,7 +217,7 @@ if st.session_state.assessment_triggered:
     
     st.markdown("""
         <div class="decision-canvas">
-            <h4 style="color:#000000; margin:0 0 5px 0;">🏥 [FINAL CLINICAL DIRECTIVE CANVAS - SYSTEM DETERMINED]</h4>
+            <h4 style="color:#000000; margin:0 0 5px 0;">🏥CLINICAL DIRECTIVE</h4>
             <p style="font-size:13px; color:#000000; margin:0;">Based on the mathematical parameters evaluated above, the system has calculated the following definitive action route for the medical team.</p>
         </div>
     """, unsafe_allow_html=True)
@@ -229,14 +229,14 @@ if st.session_state.assessment_triggered:
 # PERSISTENT AUTHORIZATION & CLINICIAN SIGN-OFF CANVAS (FORCED HTML BLACK LABELS)
 # ==============================================================================
 st.write("")
-st.markdown("<div style='color:#000000; font-size:22px; font-weight:bold; margin-top:20px; border-bottom:2px solid #3B82F6; padding-bottom:5px;'>✍️ Case Validation & Verification Sign-off</div>", unsafe_allow_html=True)
+st.markdown("<div style='color:#000000; font-size:22px; font-weight:bold; margin-top:20px; border-bottom:2px solid #3B82F6; padding-bottom:5px;'>Case Validation & Verification</div>", unsafe_allow_html=True)
 st.write("")
 
 # Forced Black Title Label for Notes Area
-st.markdown("<div style='color:#000000; font-size:15px; font-weight:bold; margin-bottom:5px;'>Clinical Justification, Diagnostic Notes, or Ward Verification Details:</div>", unsafe_allow_html=True)
+st.markdown("<div style='color:#000000; font-size:15px; font-weight:bold; margin-bottom:5px;'>Diagnostic Notes:</div>", unsafe_allow_html=True)
 clinician_notes = st.text_area(
     "Clinical Notes Label Hidden",
-    placeholder="Type mandatory medical justification comments or ward confirmation logs here before saving...",
+    placeholder="Type mandatory medical comments here before saving...",
     label_visibility="collapsed"
 )
 
@@ -244,17 +244,17 @@ col_sig, col_space = st.columns([2, 2])
 with col_sig:
     st.write("")
     # Forced Black Title Label for Doctor Sign-off Input Area
-    st.markdown("<div style='color:#000000; font-size:15px; font-weight:bold; margin-bottom:5px;'>Attending Doctor / Nurse Sign-off (Full Name & Cadre Code):</div>", unsafe_allow_html=True)
+    st.markdown("<div style='color:#000000; font-size:15px; font-weight:bold; margin-bottom:5px;'>Attending Doctor (Full Name & Cadre Code):</div>", unsafe_allow_html=True)
     signature = st.text_input(
-        "Attending Doctor Signoff Label Hidden", 
-        placeholder="e.g., Dr. Jane Namubiru - Paediatrician",
+        "Attending Doctor", 
+        placeholder="e.g., Dr. Ronnie Ssenfuma - Paediatrician",
         label_visibility="collapsed"
     )
     
 st.write("")
-if st.button("💾 Lock and Serialize Decision to Clinical Ledger"):
+if st.button("💾 Save Decision to Clinical Ledger"):
     if not signature:
-        st.error("🛑 Action Blocked: The attending clinician must provide an electronic text signature/code before saving.")
+        st.error("Action Blocked: The attending clinician must provide an electronic text signature/code before saving.")
     else:
         patient_record = {
             "Patient Register ID": patient_id,
@@ -274,8 +274,8 @@ if st.button("💾 Lock and Serialize Decision to Clinical Ledger"):
             "Feeding Protocol": feeding_type,
             "Physical Discharge Condition": discharge_condition,
             "Authoritative Disposition Route Taken": final_decision_path,
-            "Clinical Justification & Verification Notes": clinician_notes if clinician_notes else "Adhered to calculated baseline parameters.",
-            "Attending Clinician Sign-off": signature
+            "Clinical Notes": clinician_notes if clinician_notes else "Adhered to calculated baseline parameters.",
+            "Attending Clinician": signature
         }
         save_prediction_to_records(patient_record)
         st.success(f"🎉 Success! Profile for {patient_id} recorded safely into the clinical audit trail.")
@@ -290,7 +290,7 @@ st.write("")
 st.write("")
 st.markdown("""
     <div class="section-card">
-        <div class="section-title">💾 Permanent Clinical Audit Ledger</div>
+        <div class="section-title">Clinical Audit Ledger</div>
         <p style="color: #000000; font-size: 14px; margin-top:-10px;">Retrospective data matrix capturing complete baseline details, demographics, infant sex, and triage choices for future administrative audits and clinical research.</p>
     </div>
 """, unsafe_allow_html=True)
@@ -308,7 +308,7 @@ if os.path.exists(DB_FILE) and os.path.getsize(DB_FILE) > 0:
         
         csv_data = history_df.to_csv(index=False).encode('utf-8')
         st.download_button(
-            label="📥 Export Relational Audit Trail to CSV / Excel Spreadsheet",
+            label="Export Excel Spreadsheet",
             data=csv_data,
             file_name=f"mgh_cdss_audit_export_{datetime.now().strftime('%Y%m%d_%H%M')}.csv",
             mime="text/csv"
