@@ -188,7 +188,7 @@ else:
 # ==============================================================================
 st.markdown("""
     <div class="section-card">
-        <div class="section-title">🔍 Real-Time Patient Evaluation Triage Engine</div>
+        <div class="section-title">Real-Time Patient Evaluation Triage Engine</div>
         <p style="color: #000000; font-size: 14px; margin-top:-10px;">Adjust the medical parameters on the left pane and execute the button below to parse patient parameters against the Random Forest classifier matrix.</p>
     </div>
 """, unsafe_allow_html=True)
@@ -197,14 +197,14 @@ st.markdown("""
 if "assessment_triggered" not in st.session_state:
     st.session_state.assessment_triggered = False
 
-if st.button("🚀 Execute Clinical Risk Assessment", type="primary"):
+if st.button("Execute Clinical Risk Assessment", type="primary"):
     st.session_state.assessment_triggered = True
 
 # Display Real-Time Analysis if triggered
 if st.session_state.assessment_triggered:
     st.write("")
-    st.markdown(f"### Diagnostic Breakdown for: {patient_id}")
-    status_text = f"Assigned Classification Status: {risk_tier.upper()} | Calculated Risk Ratio: {readmission_probability*100:.1f}%"
+    st.markdown(f"Diagnostic Breakdown for: {patient_id}")
+    status_text = f"Classification Status: {risk_tier.upper()} | Calculated Risk Ratio: {readmission_probability*100:.1f}%"
     
     if alert_color == "error":
         st.markdown(f"""<div style="background-color: #FEE2E2; border-left: 6px solid #DC2626; padding: 15px; border-radius: 4px; margin-bottom: 15px;"><strong style="color: #991B1B; font-size: 16px;">{status_text}</strong></div>""", unsafe_allow_html=True)
@@ -217,12 +217,12 @@ if st.session_state.assessment_triggered:
     
     st.markdown("""
         <div class="decision-canvas">
-            <h4 style="color:#000000; margin:0 0 5px 0;">🏥CLINICAL DIRECTIVE</h4>
+            <h4 style="color:#000000; margin:0 0 5px 0;">CLINICAL DIRECTIVE</h4>
             <p style="font-size:13px; color:#000000; margin:0;">Based on the mathematical parameters evaluated above, the system has calculated the following definitive action route for the medical team.</p>
         </div>
     """, unsafe_allow_html=True)
     
-    st.markdown(f"**Authoritative Ward Disposition Route:**")
+    st.markdown(f"Authoritative Ward Disposition Route:")
     st.markdown(f"""<div class="final-decision-banner">{final_decision_path}</div>""", unsafe_allow_html=True)
 
 # ==============================================================================
