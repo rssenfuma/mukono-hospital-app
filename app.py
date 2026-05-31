@@ -105,7 +105,7 @@ st.sidebar.markdown('<div class="sidebar-title">📋 Clinical Entry Panel</div>'
 st.sidebar.write("")
 
 # Section 3.1: Automatic Unique Patient Tracking Meta
-st.sidebar.markdown("<div style='color:#000000; font-weight:bold; margin-bottom:5px;'>📌 Patient Identification</div>", unsafe_allow_html=True)
+st.sidebar.markdown("<div style='color:#000000; font-weight:bold; margin-bottom:5px;'>Patient Identification</div>", unsafe_allow_html=True)
 
 auto_generated_id = f"IPNO-{datetime.now().strftime('%Y%m%d-%H%M')}"
 patient_id = st.sidebar.text_input(
@@ -132,7 +132,7 @@ gestational_age = st.sidebar.slider("Gestational Age (Weeks)", min_value=20, max
 
 # Section 3.3: Secondary Clinical Covariates
 st.sidebar.markdown("---")
-st.sidebar.markdown("<div style='color:#000000; font-weight:bold;'>📊 Supplementary Clinical Metrics</div>", unsafe_allow_html=True)
+st.sidebar.markdown("<div style='color:#000000; font-weight:bold;'>Supplementary Clinical Metrics</div>", unsafe_allow_html=True)
 
 st.sidebar.markdown("<div style='color:#000000; font-size:14px; margin-top:5px;'>5-Minute Apgar Vitality Score</div>", unsafe_allow_html=True)
 apgar_score = st.sidebar.slider("5-Minute Apgar Vitality Score", min_value=0, max_value=10, value=7, step=1, label_visibility="collapsed")
