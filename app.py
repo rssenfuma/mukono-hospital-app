@@ -139,10 +139,10 @@ if not st.session_state.authenticated:
     
     col_l1, col_l2 = st.columns(2)
     with col_l1:
-        st.markdown("<div style='color:#000000; font-size:14px; font-weight:bold; margin-bottom:5px;'>User ID / System Username:</div>", unsafe_allow_html=True)
+        st.markdown("<div style='color:#000000; font-size:14px; font-weight:bold; margin-bottom:5px;'>System Username:</div>", unsafe_allow_html=True)
         input_username = st.text_input("Username Input Area", placeholder="Enter official username...", label_visibility="collapsed")
     with col_l2:
-        st.markdown("<div style='color:#000000; font-size:14px; font-weight:bold; margin-bottom:5px;'>Security Passcode / Password:</div>", unsafe_allow_html=True)
+        st.markdown("<div style='color:#000000; font-size:14px; font-weight:bold; margin-bottom:5px;'>Password:</div>", unsafe_allow_html=True)
         input_password = st.text_input("Password Input Area", type="password", placeholder="Enter secure password...", label_visibility="collapsed")
         
     st.write("")
