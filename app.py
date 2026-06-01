@@ -79,9 +79,7 @@ USERS_FILE = "system_users.csv"
 def load_system_users():
     defaults = {
         "admin": {"password": "mgh2026", "role": "admin"},
-        "ronnie": {"password": "informatics25", "role": "user"},
-        "doctor": {"password": "mukonohospital", "role": "user"}
-    }
+            }
     if not os.path.exists(USERS_FILE):
         rows = []
         for username, info in defaults.items():
@@ -321,28 +319,28 @@ if st.button("💾 Save Decision to Clinical Ledger"):
     else:
         # EXACTLY MAPPED LABELS BASED ON THE STEP-BY-STEP USER LAYOUT REQUEST
         patient_record = {
-            "📌 Patient Identification": patient_id,
+            "Patient Identification": patient_id,
             "Consultation Timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             
             # Core Mathematical Predictors
-            "Core Mathematical Predictors: Birth Weight (kg)": birth_weight,
-            "Core Mathematical Predictors: Maternal Age (Years)": maternal_age,
-            "Core Mathematical Predictors: Duration of Initial Hospital Stay (Days)": length_of_stay,
-            "Core Mathematical Predictors: Gestational Age (Weeks)": gestational_age,
+            "Birth Weight (kg)": birth_weight,
+            "Maternal Age (Years)": maternal_age,
+            "Duration of Initial Hospital Stay (Days)": length_of_stay,
+            "Gestational Age (Weeks)": gestational_age,
             
             # 📊 Supplementary Clinical Metrics
-            "📊 Supplementary Clinical Metrics: 5-Minute Apgar Vitality Score": apgar_score,
-            "📊 Supplementary Clinical Metrics: Antenatal Care (ANC) Attendance": anc_visits,
-            "📊 Supplementary Clinical Metrics: Maternal Parity (Total Deliveries)": parity,
-            "📊 Supplementary Clinical Metrics: Mode of Delivery": mode_of_delivery,
-            "📊 Supplementary Clinical Metrics: Sex of Neonate": sex_neonate,
-            "📊 Supplementary Clinical Metrics: Feeding Type at Discharge": feeding_type,
-            "📊 Supplementary Clinical Metrics: Discharge Physical Condition": discharge_condition,
+            "5-Minute Apgar Vitality Score": apgar_score,
+            " Antenatal Care (ANC) Attendance": anc_visits,
+            "Maternal Parity (Total Deliveries)": parity,
+            " Mode of Delivery": mode_of_delivery,
+            " Sex of Neonate": sex_neonate,
+            " Feeding Type at Discharge": feeding_type,
+            " Discharge Physical Condition": discharge_condition,
             
             # Diagnostic Breakdown & Analysis Outputs
-            "Diagnostic Breakdown: Classification Status": risk_tier.upper(),
-            "Diagnostic Breakdown: Calculated Risk Ratio": f"{readmission_probability*100:.1f}%",
-            "Diagnostic Breakdown: Context Guidelines": guidelines,
+            " Classification Status": risk_tier.upper(),
+            " Calculated Risk Ratio": f"{readmission_probability*100:.1f}%",
+            "Context Guidelines": guidelines,
             
             # Decision Outcomes & Signature Details
             "CLINICAL DIRECTIVE / Final Decision Approved": final_decision_path,
