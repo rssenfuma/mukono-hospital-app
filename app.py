@@ -86,7 +86,52 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ==============================================================================
-# 2. LOCAL DATA STORAGE AND MANAGEMENT SUBSYSTEM
+# 2. CLINICAL GATEWAY: USER CREDENTIALS & LOGIN TERMINAL
+# ==============================================================================
+# Authorized user matrix mapping user keys to authorization tokens
+USER_CREDENTIALS = {
+    "admin": "mgh2026",
+    "ronnie": "informatics25",
+    "doctor": "mukonohospital"
+}
+
+if "authenticated" not in st.session_state:
+    st.session_state.authenticated = False
+
+if not st.session_state.authenticated:
+    st.markdown("""
+        <div class="section-card" style="border-left: 5px solid #EF4444;">
+            <div class="section-title" style="color: #DC2626 !important;">🔒 Secure Clinical Gateway Access Authorization Required</div>
+            <p style="color: #000000; font-size: 14px; margin-top:-10px;">This platform contains clinical evaluation algorithms and audited registry data streams. Please authenticate using authorized staff credentials to initialize session control.</p>
+        </div>
+    """, unsafe_allow_html=True)
+    
+    col_l1, col_l2 = st.columns(2)
+    with col_l1:
+        st.markdown("<div style='color:#000000; font-size:14px; font-weight:bold; margin-bottom:5px;'>User ID / System Username:</div>", unsafe_allow_html=True)
+        input_username = st.text_input("Username Input Area", placeholder="Enter official username...", label_visibility="collapsed")
+    with col_l2:
+        st.markdown("<div style='color:#000000; font-size:14px; font-weight:bold; margin-bottom:5px;'>Security Passcode / Password:</div>", unsafe_allow_html=True)
+        input_password = st.text_input("Password Input Area", type="password", placeholder="Enter secure password...", label_visibility="collapsed")
+        
+    st.write("")
+    if st.button("Authorize Session Identity", type="primary"):
+        if input_username in USER_CREDENTIALS and USER_CREDENTIALS[input_username] == input_password:
+            st.session_state.authenticated = True
+            st.success(f"Authorization Confirmed. Initializing session token for user: {input_username}")
+            st.rerun()
+        else:
+            st.error("Authentication Refused: The credentials provided do not map to any authorized health practitioner keys.")
+    st.stop()  # Stop completely here if not authenticated yet
+
+# Add a logout element inside the panel for ease of navigation
+if st.sidebar.button("🔒 Terminate Session (Logout)"):
+    st.session_state.authenticated = False
+    st.session_state.assessment_triggered = False
+    st.rerun()
+
+# ==============================================================================
+# 3. LOCAL DATA STORAGE AND MANAGEMENT SUBSYSTEM
 # ==============================================================================
 DB_FILE = "saved_predictions.csv"
 
@@ -99,13 +144,13 @@ def save_prediction_to_records(patient_data):
         df.to_csv(DB_FILE, mode='a', header=False, index=False)
 
 # ==============================================================================
-# 3. CLINICAL DATA INPUT PANEL (SIDEBAR) WITH AUTO-GENERATED ID
+# 4. CLINICAL DATA INPUT PANEL (SIDEBAR) WITH AUTO-GENERATED ID
 # ==============================================================================
 st.sidebar.markdown('<div class="sidebar-title">📋 Clinical Entry Panel</div>', unsafe_allow_html=True)
 st.sidebar.write("")
 
-# Section 3.1: Automatic Unique Patient Tracking Meta
-st.sidebar.markdown("<div style='color:#000000; font-weight:bold; margin-bottom:5px;'>Patient Identification</div>", unsafe_allow_html=True)
+# Section 4.1: Automatic Unique Patient Tracking Meta
+st.sidebar.markdown("<div style='color:#000000; font-weight:bold; margin-bottom:5px;'>📌 Patient Identification</div>", unsafe_allow_html=True)
 
 auto_generated_id = f"IPNO-{datetime.now().strftime('%Y%m%d-%H%M')}"
 patient_id = st.sidebar.text_input(
@@ -115,7 +160,7 @@ patient_id = st.sidebar.text_input(
     help="Automatically generated based on date and time. Can be manually changed if needed."
 )
 
-# Section 3.2: High-Weight Predictors (Top 4 Features Verified in Chapter 6)
+# Section 4.2: High-Weight Predictors (Top 4 Features Verified in Chapter 6)
 st.sidebar.markdown("---")
 st.sidebar.markdown("<div style='color:#000000; font-weight:bold;'>Core Mathematical Predictors</div>", unsafe_allow_html=True)
 st.sidebar.markdown("<div style='color:#000000; font-size:14px; margin-top:5px;'>Birth Weight (kg)</div>", unsafe_allow_html=True)
@@ -130,9 +175,9 @@ length_of_stay = st.sidebar.slider("Duration of Initial Hospital Stay (Days)", m
 st.sidebar.markdown("<div style='color:#000000; font-size:14px; margin-top:5px;'>Gestational Age (Weeks)</div>", unsafe_allow_html=True)
 gestational_age = st.sidebar.slider("Gestational Age (Weeks)", min_value=20, max_value=42, value=35, step=1, label_visibility="collapsed")
 
-# Section 3.3: Secondary Clinical Covariates
+# Section 4.3: Secondary Clinical Covariates
 st.sidebar.markdown("---")
-st.sidebar.markdown("<div style='color:#000000; font-weight:bold;'>Supplementary Clinical Metrics</div>", unsafe_allow_html=True)
+st.sidebar.markdown("<div style='color:#000000; font-weight:bold;'>📊 Supplementary Clinical Metrics</div>", unsafe_allow_html=True)
 
 st.sidebar.markdown("<div style='color:#000000; font-size:14px; margin-top:5px;'>5-Minute Apgar Vitality Score</div>", unsafe_allow_html=True)
 apgar_score = st.sidebar.slider("5-Minute Apgar Vitality Score", min_value=0, max_value=10, value=7, step=1, label_visibility="collapsed")
@@ -156,7 +201,7 @@ st.sidebar.markdown("<div style='color:#000000; font-size:14px; margin-top:5px;'
 discharge_condition = st.sidebar.selectbox("Discharge Physical Condition", ["Stable", "Improved", "Critical"], label_visibility="collapsed")
 
 # ==============================================================================
-# 4. RANDOM FOREST PREDICTIVE SIMULATION PATTERN
+# 5. RANDOM FOREST PREDICTIVE SIMULATION PATTERN
 # ==============================================================================
 base_score = 0.50
 
@@ -177,14 +222,14 @@ if readmission_probability >= 0.70:
 elif readmission_probability >= 0.35:
     risk_tier, alert_color = "Medium Risk", "warning"
     guidelines = "⚠️ MODERATE CAUTION STRATIFICATION REQUIRED (YELLOW TIER): Ward Management: Clear for discharge only after nursing staff double-check maternal breastfeeding mechanics. | Education: Provide direct, face-to-face maternal counseling on neonatal thermal regulation guidelines. | Follow-Up: Automatically place the profile onto the hospital's Day-7 phone-based automated wellness tracking queue."
-    final_decision_path = "APPROVED DISCHARGE: Clear for Postnatal Release following successful Nurse-Verified Feeding & Warmth Audits"
+    final_decision_path = "🟡 APPROVED DISCHARGE: Clear for Postnatal Release following successful Nurse-Verified Feeding & Warmth Audits"
 else:
     risk_tier, alert_color = "Low Risk", "success"
     guidelines = "✅ ROUTINE OUTPATIENT CARE AUTHORIZED (GREEN TIER): Ward Management: Authorized for standard, timely postnatal ward discharge. | Documentation: Provide standard maternal postpartum wellness literature and print the routine UNEPI immunization tracking schedule."
     final_decision_path = "🟢 ROUTINE POSTNATAL DISCHARGE: Authorize Standard Release with baseline UNEPI Immunization Package"
 
 # ==============================================================================
-# 5. REAL-TIME INTERACTION & TRIAGE OUTCOME SCREEN
+# 6. REAL-TIME INTERACTION & TRIAGE OUTCOME SCREEN
 # ==============================================================================
 st.markdown("""
     <div class="section-card">
@@ -266,7 +311,7 @@ if st.button("💾 Save Decision to Clinical Ledger"):
             "Birth Weight (kg)": birth_weight,
             "Gestational Age (Weeks)": gestational_age,
             "Maternal Age (Years)": maternal_age,
-            "Duration of Initial Hospital Stay (Days)": length_of_stay,
+            "Initial Ward Stay (Days)": length_of_stay,
             "5-Min Apgar Score": apgar_score,
             "ANC Visits Attended": anc_visits,
             "Maternal Parity": parity,
@@ -284,7 +329,7 @@ if st.button("💾 Save Decision to Clinical Ledger"):
         st.button("🔄 Refresh Application View", on_click=st.rerun)
 
 # ==============================================================================
-# 6. EXPANDED HISTORICAL AUDIT TRAIL LOG SHEET
+# 7. EXPANDED HISTORICAL AUDIT TRAIL LOG SHEET
 # ==============================================================================
 st.write("")
 st.write("")
