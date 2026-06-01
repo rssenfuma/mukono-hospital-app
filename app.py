@@ -14,7 +14,6 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom Institutional CSS Injection
 st.markdown("""
     <style>
     .stApp { background-color: #FAFAFA; }
@@ -64,7 +63,6 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# Main Banner Layout
 st.markdown("""
     <div class="hospital-header">
         <div class="hospital-title">🏥 MUKONO GENERAL HOSPITAL</div>
@@ -73,19 +71,64 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ==============================================================================
-# 2. CLINICAL GATEWAY: USER CREDENTIALS & ROLE MANAGEMENT
+# 2. USER SECURITY STORAGE & DATABASE SUBSYSTEM
 # ==============================================================================
-USER_CREDENTIALS = {
-    "admin": {"password": "mgh2026", "role": "admin"},
-    "ronnie": {"password": "informatics25", "role": "user"},
-    "doctor": {"password": "mukonohospital", "role": "user"}
-}
+USERS_FILE = "system_users.csv"
 
+def load_system_users():
+    """Loads system credentials from a local file storage database."""
+    # Built-in fallback default accounts
+    defaults = {
+        "admin": {"password": "mgh2026", "role": "admin"},
+        "ronnie": {"password": "informatics25", "role": "user"},
+        "doctor": {"password": "mukonohospital", "role": "user"}
+    }
+    if not os.path.exists(USERS_FILE):
+        # Create file with defaults if it doesn't exist
+        rows = []
+        for username, info in defaults.items():
+            rows.append({"username": username, "password": info["password"], "role": info["role"]})
+        pd.DataFrame(rows).to_csv(USERS_FILE, index=False)
+        return defaults
+    else:
+        try:
+            df = pd.read_csv(USERS_FILE)
+            user_dict = {}
+            for _, row in df.iterrows():
+                user_dict[str(row['username']).strip()] = {
+                    "password": str(row['password']).strip(),
+                    "role": str(row['role']).strip()
+                }
+            return user_dict
+        except:
+            return defaults
+
+def save_new_user_to_system(username, password, role):
+    """Saves a newly registered clinician account into the system storage."""
+    if os.path.exists(USERS_FILE):
+        df = pd.read_csv(USERS_FILE)
+    else:
+        df = pd.DataFrame(columns=["username", "password", "role"])
+    
+    # Remove if user already exists to prevent duplicate rows
+    df = df[df['username'] != username]
+    
+    new_row = pd.DataFrame([{"username": username, "password": password, "role": role}])
+    df = pd.concat([df, new_row], ignore_index=True)
+    df.to_csv(USERS_FILE, index=False)
+
+# Load users from database file
+USER_CREDENTIALS = load_system_users()
+
+# Initialize security state engines
 if "authenticated" not in st.session_state:
     st.session_state.authenticated = False
 if "current_user" not in st.session_state:
     st.session_state.current_user = None
 
+# ==============================================================================
+# 3. CLINICAL GATEWAY LOGIN TERMINAL
+# ==============================================================================
 if not st.session_state.authenticated:
     st.markdown("""
         <div class="section-card" style="border-left: 5px solid #EF4444;">
@@ -104,10 +147,11 @@ if not st.session_state.authenticated:
         
     st.write("")
     if st.button("Authorize Session Identity", type="primary"):
-        if input_username in USER_CREDENTIALS and USER_CREDENTIALS[input_username]["password"] == input_password:
+        cleaned_user = input_username.strip()
+        if cleaned_user in USER_CREDENTIALS and USER_CREDENTIALS[cleaned_user]["password"] == input_password.strip():
             st.session_state.authenticated = True
-            st.session_state.current_user = input_username
-            st.success(f"Authorization Confirmed. Welcome back, {input_username} ({USER_CREDENTIALS[input_username]['role'].upper()})")
+            st.session_state.current_user = cleaned_user
+            st.success(f"Authorization Confirmed. Welcome back, {cleaned_user}")
             st.rerun()
         else:
             st.error("Authentication Refused: The credentials provided do not match any authorized keys.")
@@ -120,14 +164,11 @@ if st.sidebar.button("🔒 Terminate Session (Logout)"):
     st.session_state.assessment_triggered = False
     st.rerun()
 
-# Display current user metadata in sidebar
 st.sidebar.markdown(f"<div style='color: #1E3A8A; font-size:12px; font-weight:bold;'>Active User: {st.session_state.current_user.upper()}</div>", unsafe_allow_html=True)
-
-# Get active user role clearance
 active_role = USER_CREDENTIALS[st.session_state.current_user]["role"]
 
 # ==============================================================================
-# 3. LOCAL DATA STORAGE AND MANAGEMENT SUBSYSTEM
+# 4. DATA LOGGING SUBSYSTEM
 # ==============================================================================
 DB_FILE = "saved_predictions.csv"
 
@@ -139,7 +180,7 @@ def save_prediction_to_records(patient_data):
         df.to_csv(DB_FILE, mode='a', header=False, index=False)
 
 # ==============================================================================
-# 4. CLINICAL DATA INPUT PANEL (SIDEBAR) WITH AUTO-GENERATED ID
+# 5. CLINICAL DATA INPUT PANEL (SIDEBAR)
 # ==============================================================================
 st.sidebar.markdown('<div class="sidebar-title">📋 Clinical Entry Panel</div>', unsafe_allow_html=True)
 st.sidebar.write("")
@@ -187,7 +228,7 @@ st.sidebar.markdown("<div style='color:#000000; font-size:14px; margin-top:5px;'
 discharge_condition = st.sidebar.selectbox("Discharge Physical Condition", ["Stable", "Improved", "Critical"], label_visibility="collapsed")
 
 # ==============================================================================
-# 5. RANDOM FOREST PREDICTIVE SIMULATION PATTERN
+# 6. RANDOM FOREST PREDICTIVE SIMULATION PATTERN
 # ==============================================================================
 base_score = 0.50
 if birth_weight < 2.5: base_score += 0.15      
@@ -213,7 +254,7 @@ else:
     final_decision_path = "🟢 ROUTINE POSTNATAL DISCHARGE: Authorize Standard Release"
 
 # ==============================================================================
-# 6. REAL-TIME INTERACTION & TRIAGE OUTCOME SCREEN
+# 7. REAL-TIME INTERACTION & TRIAGE OUTCOME SCREEN
 # ==============================================================================
 st.markdown("""
     <div class="section-card">
@@ -250,7 +291,7 @@ if st.session_state.assessment_triggered:
     st.markdown(f"""<div class="final-decision-banner">{final_decision_path}</div>""", unsafe_allow_html=True)
 
 # ==============================================================================
-# 7. CASE VALIDATION & VERIFICATION (OPEN TO ALL CURRENT SESSIONS)
+# 8. CASE VALIDATION & VERIFICATION (OPEN TO ALL LOGGED IN USERS)
 # ==============================================================================
 st.write("")
 st.markdown("<div style='color:#000000; font-size:22px; font-weight:bold; margin-top:20px; border-bottom:2px solid #3B82F6; padding-bottom:5px;'>Case Validation & Verification</div>", unsafe_allow_html=True)
@@ -267,7 +308,6 @@ with col_sig:
     
 st.write("")
 
-# EVERYONE CAN SAVE: Both admin and standard user role accounts can commit patient records
 if st.button("💾 Save Decision to Clinical Ledger"):
     if not signature:
         st.error("Action Blocked: Clinician signature required.")
@@ -282,12 +322,10 @@ if st.button("💾 Save Decision to Clinical Ledger"):
         save_prediction_to_records(patient_record)
         st.success(f"🎉 Success! Profile recorded safely.")
         st.session_state.assessment_triggered = False
-        
-        # INSTANT REBOOT: Immediately reruns app, turning the upper right corner spinner to inactive
         st.rerun()
 
 # ==============================================================================
-# 8. EXPANDED HISTORICAL AUDIT TRAIL LOG SHEET (ADMIN-ONLY EXPORT ACCESS CONTROL)
+# 9. CLINICAL AUDIT LEDGER
 # ==============================================================================
 st.write("")
 st.write("")
@@ -309,7 +347,6 @@ if os.path.exists(DB_FILE) and os.path.getsize(DB_FILE) > 0:
             hide_index=True
         )
         
-        # ROLE SECLUSION: Only display download/export utilities if signed into 'admin' account
         if active_role == "admin":
             csv_data = history_df.to_csv(index=False).encode('utf-8')
             st.download_button(
@@ -319,9 +356,43 @@ if os.path.exists(DB_FILE) and os.path.getsize(DB_FILE) > 0:
                 mime="text/csv"
             )
         else:
-            st.info("ℹ️ Excel sheet data export options are locked for your user level.")
+            st.info("ℹ Rose sheet data export options are locked for your user level.")
             
     except Exception as e:
         st.error(f"Error parsing file: {e}")
 else:
     st.info("No records are currently logged in the relational database ledger.")
+
+# ==============================================================================
+# 10. ADMINISTRATIVE USER MANAGEMENT HUBS (EXCLUSIVE TO ADMIN SESSIONS)
+# ==============================================================================
+if active_role == "admin":
+    st.write("")
+    st.write("")
+    st.markdown("""
+        <div class="section-card" style="border-left: 5px solid #10B981;">
+            <div class="section-title" style="color: #047857 !important;">👥 Administrative Management Console: System User Accounts</div>
+            <p style="color: #000000; font-size: 14px; margin-top:-10px;">Register new clinician accounts or change user authorizations here. This panel is hidden from standard users.</p>
+        </div>
+    """, unsafe_allow_html=True)
+    
+    col_u1, col_u2, col_u3 = st.columns(3)
+    with col_u1:
+        st.markdown("<div style='color:#000000; font-size:14px; font-weight:bold; margin-bottom:5px;'>New Account Username:</div>", unsafe_allow_html=True)
+        new_user = st.text_input("New Username Input", placeholder="e.g., nurse_mary", label_visibility="collapsed")
+    with col_u2:
+        st.markdown("<div style='color:#000000; font-size:14px; font-weight:bold; margin-bottom:5px;'>Account Access Password:</div>", unsafe_allow_html=True)
+        new_pass = st.text_input("New Password Input", type="password", placeholder="Set a secure password...", label_visibility="collapsed")
+    with col_u3:
+        st.markdown("<div style='color:#000000; font-size:14px; font-weight:bold; margin-bottom:5px;'>Assign Permissions Level:</div>", unsafe_allow_html=True)
+        new_role = st.selectbox("New Role Selection", ["user", "admin"], label_visibility="collapsed")
+        
+    st.write("")
+    if st.button("➕ Add & Register Account", type="secondary"):
+        cleaned_new_user = new_user.strip().lower()
+        if not cleaned_new_user or not new_pass.strip():
+            st.error("Registration Blocked: Username and Password fields cannot be empty.")
+        else:
+            save_new_user_to_system(cleaned_new_user, new_pass.strip(), new_role)
+            st.success(f"🎉 Success! Account '{cleaned_new_user}' registered with '{new_role.upper()}' clearance levels.")
+            st.rerun()
