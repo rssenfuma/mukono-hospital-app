@@ -19,7 +19,7 @@ st.markdown("""
     <style>
     .stApp { background-color: #FAFAFA; }
     body, p, div { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; }
-    label, p, span, h1, h2, h3, h4, h5, h6, .stMarkdown, div[data-testid=\"stMarkdownContainer\"] p {
+    label, p, span, h1, h2, h3, h4, h5, h6, .stMarkdown, div[data-testid="stMarkdownContainer"] p {
         color: #000000 !important;
     }
     .hospital-header { 
@@ -77,7 +77,6 @@ st.markdown("""
 USERS_FILE = "system_users.csv"
 
 def load_system_users():
-    """Loads system credentials from a local file storage database."""
     defaults = {
         "admin": {"password": "mgh2026", "role": "admin"},
         "ronnie": {"password": "informatics25", "role": "user"},
@@ -104,7 +103,6 @@ def load_system_users():
             return defaults
 
 def save_new_user_to_system(username, password, role):
-    """Saves a newly registered clinician account into the system storage securely."""
     cleaned_user = str(username).strip().lower()
     cleaned_pass = str(password).strip()
     cleaned_role = str(role).strip().lower()
@@ -231,7 +229,7 @@ st.sidebar.markdown("<div style='color:#000000; font-size:14px; margin-top:5px;'
 discharge_condition = st.sidebar.selectbox("Discharge Physical Condition", ["Stable", "Improved", "Critical"], label_visibility="collapsed")
 
 # ==============================================================================
-# 6. RANDOM FOREST PREDICTIVE SIMULATION PATTERN (CDSS ANALYSIS ENGINE)
+# 6. RANDOM FOREST PREDICTIVE SIMULATION PATTERN
 # ==============================================================================
 base_score = 0.50
 if birth_weight < 2.5: base_score += 0.15      
@@ -294,7 +292,7 @@ if st.session_state.assessment_triggered:
     st.markdown(f"""<div class="final-decision-banner">{final_decision_path}</div>""", unsafe_allow_html=True)
 
 # ==============================================================================
-# 8. CASE VALIDATION & VERIFICATION (EXCEL EXPORT FORM RECORD MAPPING)
+# 8. CASE VALIDATION & VERIFICATION (EXACT COLUMNS MIGRATION FOR EXCEL)
 # ==============================================================================
 st.write("")
 st.markdown("<div style='color:#000000; font-size:22px; font-weight:bold; margin-top:20px; border-bottom:2px solid #3B82F6; padding-bottom:5px;'>Case Validation & Verification</div>", unsafe_allow_html=True)
@@ -315,30 +313,35 @@ if st.button("💾 Save Decision to Clinical Ledger"):
     if not signature:
         st.error("Action Blocked: Clinician signature required.")
     else:
-        # MAPS ALL INPUT FIELDS + ANALYSIS AND DECISION MAKING OUTCOMES
+        # EXACT EXCEL FIELD DICTIONARY MAPPING
         patient_record = {
-            "Patient Register ID": patient_id,
+            "📌 Patient Identification": patient_id,
             "Consultation Timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             
-            # --- FORM FIELDS ---
-            "Birth Weight (kg)": birth_weight,
-            "Maternal Age (Years)": maternal_age,
-            "Duration of Hospital Stay (Days)": length_of_stay,
-            "Gestational Age (Weeks)": gestational_age,
-            "5-Minute Apgar Score": apgar_score,
-            "ANC Attendance Count": anc_visits,
-            "Maternal Parity": parity,
-            "Mode of Delivery": mode_of_delivery,
-            "Sex of Neonate": sex_neonate,
-            "Feeding Type at Discharge": feeding_type,
-            "Discharge Physical Condition": discharge_condition,
-            "Clinician Diagnostic Notes": clinician_notes,
+            # --- Core Mathematical Predictors ---
+            "Core Mathematical Predictors: Birth Weight (kg)": birth_weight,
+            "Core Mathematical Predictors: Maternal Age (Years)": maternal_age,
+            "Core Mathematical Predictors: Duration of Initial Hospital Stay (Days)": length_of_stay,
+            "Core Mathematical Predictors: Gestational Age (Weeks)": gestational_age,
             
-            # --- CDSS ANALYSIS OUTCOMES ---
-            "Risk Stratification Tier": risk_tier,
-            "Readmission Risk Score (%)": round(readmission_probability * 100, 1),
-            "Clinical Decision Made / Directive": final_decision_path,
-            "Attending Clinician": signature
+            # --- Supplementary Clinical Metrics ---
+            "📊 Supplementary Clinical Metrics: 5-Minute Apgar Vitality Score": apgar_score,
+            "📊 Supplementary Clinical Metrics: Antenatal Care (ANC) Attendance": anc_visits,
+            "📊 Supplementary Clinical Metrics: Maternal Parity (Total Deliveries)": parity,
+            "📊 Supplementary Clinical Metrics: Mode of Delivery": mode_of_delivery,
+            "📊 Supplementary Clinical Metrics: Sex of Neonate": sex_neonate,
+            "📊 Supplementary Clinical Metrics: Feeding Type at Discharge": feeding_type,
+            "📊 Supplementary Clinical Metrics: Discharge Physical Condition": discharge_condition,
+            
+            # --- CDSS Analysis and Verdict Metrics ---
+            "Diagnostic Breakdown: Classification Status": risk_tier.upper(),
+            "Diagnostic Breakdown: Calculated Risk Ratio (%)": round(readmission_probability * 100, 1),
+            "Diagnostic Breakdown: Guidelines / Warning Context": guidelines,
+            "CLINICAL DIRECTIVE / Outcome": final_decision_path,
+            
+            # --- Hand-Signed Sign-Offs ---
+            "Diagnostic Notes": clinician_notes,
+            "Attending Doctor": signature
         }
         save_prediction_to_records(patient_record)
         st.success(f"🎉 Success! Profile recorded safely.")
