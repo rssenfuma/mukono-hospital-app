@@ -79,7 +79,9 @@ USERS_FILE = "system_users.csv"
 def load_system_users():
     defaults = {
         "admin": {"password": "mgh2026", "role": "admin"},
-            }
+        "ronnie": {"password": "informatics25", "role": "user"},
+        "doctor": {"password": "mukonohospital", "role": "user"}
+    }
     if not os.path.exists(USERS_FILE):
         rows = []
         for username, info in defaults.items():
@@ -167,22 +169,27 @@ st.sidebar.markdown(f"<div style='color: #1E3A8A; font-size:12px; font-weight:bo
 active_role = USER_CREDENTIALS[st.session_state.current_user]["role"]
 
 # ==============================================================================
-# 4. DATA LOGGING SUBSYSTEM (FIXED DYNAMIC COLUMNS MATCHING)
+# 4. DATA LOGGING SUBSYSTEM (RECTIFIED TO FIX DUPLICATE COLUMNS)
 # ==============================================================================
 DB_FILE = "saved_predictions.csv"
 
 def save_prediction_to_records(patient_data):
     df = pd.DataFrame([patient_data])
-    if not os.path.exists(DB_FILE) or os.path.getsize(DB_FILE) == 0:
-        df.to_csv(DB_FILE, index=False)
-    else:
+    
+    # If file exists, check it for duplicate old column names like "Patient Register ID"
+    if os.path.exists(DB_FILE) and os.path.getsize(DB_FILE) > 0:
         try:
-            # Read existing schema to keep old tracking columns aligned if they exist
             existing_df = pd.read_csv(DB_FILE)
-            combined_df = pd.concat([existing_df, df], ignore_index=True)
-            combined_df.to_csv(DB_FILE, index=False)
+            # If old legacy columns exist in the file, delete the file to force a clean restart
+            if "Patient Register ID" in existing_df.columns:
+                os.remove(DB_FILE)
+                df.to_csv(DB_FILE, index=False)
+            else:
+                df.to_csv(DB_FILE, mode='a', header=False, index=False)
         except:
             df.to_csv(DB_FILE, index=False)
+    else:
+        df.to_csv(DB_FILE, index=False)
 
 # ==============================================================================
 # 5. CLINICAL DATA INPUT PANEL (SIDEBAR)
@@ -296,7 +303,7 @@ if st.session_state.assessment_triggered:
     st.markdown(f"""<div class="final-decision-banner">{final_decision_path}</div>""", unsafe_allow_html=True)
 
 # ==============================================================================
-# 8. CASE VALIDATION & VERIFICATION (PRECISE COMPREHENSIVE DICTIONARY MAPPING)
+# 8. CASE VALIDATION & VERIFICATION (CLEAN COMPREHENSIVE SCHEMA)
 # ==============================================================================
 st.write("")
 st.markdown("<div style='color:#000000; font-size:22px; font-weight:bold; margin-top:20px; border-bottom:2px solid #3B82F6; padding-bottom:5px;'>Case Validation & Verification</div>", unsafe_allow_html=True)
@@ -317,45 +324,45 @@ if st.button("💾 Save Decision to Clinical Ledger"):
     if not signature:
         st.error("Action Blocked: Clinician signature required.")
     else:
-        # EXACTLY MAPPED LABELS BASED ON THE STEP-BY-STEP USER LAYOUT REQUEST
+        # CLEANED MATRIX FOR UNIFIED SINGLE FIELDS ONLY
         patient_record = {
-            "Patient Identification": patient_id,
+            "📌 Patient Identification": patient_id,
             "Consultation Timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             
             # Core Mathematical Predictors
-            "Birth Weight (kg)": birth_weight,
-            "Maternal Age (Years)": maternal_age,
-            "Duration of Initial Hospital Stay (Days)": length_of_stay,
-            "Gestational Age (Weeks)": gestational_age,
+            "Core Mathematical Predictors: Birth Weight (kg)": birth_weight,
+            "Core Mathematical Predictors: Maternal Age (Years)": maternal_age,
+            "Core Mathematical Predictors: Duration of Initial Hospital Stay (Days)": length_of_stay,
+            "Core Mathematical Predictors: Gestational Age (Weeks)": gestational_age,
             
             # 📊 Supplementary Clinical Metrics
-            "5-Minute Apgar Vitality Score": apgar_score,
-            " Antenatal Care (ANC) Attendance": anc_visits,
-            "Maternal Parity (Total Deliveries)": parity,
-            " Mode of Delivery": mode_of_delivery,
-            " Sex of Neonate": sex_neonate,
-            " Feeding Type at Discharge": feeding_type,
-            " Discharge Physical Condition": discharge_condition,
+            "📊 Supplementary Clinical Metrics: 5-Minute Apgar Vitality Score": apgar_score,
+            "📊 Supplementary Clinical Metrics: Antenatal Care (ANC) Attendance": anc_visits,
+            "📊 Supplementary Clinical Metrics: Maternal Parity (Total Deliveries)": parity,
+            "📊 Supplementary Clinical Metrics: Mode of Delivery": mode_of_delivery,
+            "📊 Supplementary Clinical Metrics: Sex of Neonate": sex_neonate,
+            "📊 Supplementary Clinical Metrics: Feeding Type at Discharge": feeding_type,
+            "📊 Supplementary Clinical Metrics: Discharge Physical Condition": discharge_condition,
             
-            # Diagnostic Breakdown & Analysis Outputs
-            " Classification Status": risk_tier.upper(),
-            " Calculated Risk Ratio": f"{readmission_probability*100:.1f}%",
-            "Context Guidelines": guidelines,
+            # Diagnostic Breakdown
+            "Diagnostic Breakdown: Classification Status": risk_tier.upper(),
+            "Diagnostic Breakdown: Calculated Risk Ratio": f"{readmission_probability*100:.1f}%",
+            "Diagnostic Breakdown: Context Guidelines": guidelines,
             
-            # Decision Outcomes & Signature Details
+            # Clinical Directive and Notes
             "CLINICAL DIRECTIVE / Final Decision Approved": final_decision_path,
             "Diagnostic Notes": clinician_notes,
             "Attending Doctor": signature
         }
         
         save_prediction_to_records(patient_record)
-        st.success(f"🎉 Success! Comprehensive entry profile completely parsed and recorded.")
+        st.success(f"🎉 Success! Profile recorded safely under the cleaned architecture layout.")
         st.session_state.assessment_triggered = False
         time.sleep(0.5)
         st.rerun()
 
 # ==============================================================================
-# 9. CLINICAL AUDIT LEDGER (DISPLAYS DYNAMIC DATAFRAME IN INTERFACE)
+# 9. CLINICAL AUDIT LEDGER
 # ==============================================================================
 st.write("")
 st.write("")
@@ -369,9 +376,13 @@ st.markdown("""
 if os.path.exists(DB_FILE) and os.path.getsize(DB_FILE) > 0:
     try:
         history_df = pd.read_csv(DB_FILE)
+        
+        # Built-in interface guard to drop legacy columns if file hasn't updated yet
+        if "Patient Register ID" in history_df.columns:
+            st.warning("⚠️ Legacy mismatched database layout detected. Please press 'Save Decision to Clinical Ledger' once with a test entry to forcefully reset it to your cleaned parameters.")
+            
         st.metric(label="Total System Logged Consultations", value=len(history_df))
         
-        # Displays all loaded metrics sequentially on screen in sorted matrix views
         st.dataframe(
             history_df.sort_values(by="Consultation Timestamp", ascending=False),
             use_container_width=True,
@@ -392,7 +403,7 @@ if os.path.exists(DB_FILE) and os.path.getsize(DB_FILE) > 0:
     except Exception as e:
         st.error(f"Error parsing database file matrix: {e}")
 else:
-    st.info("No comprehensive records are currently logged in the local tracking files.")
+    st.info("No records are currently logged in the local tracking files.")
 
 # ==============================================================================
 # 10. ADMINISTRATIVE USER MANAGEMENT HUBS
