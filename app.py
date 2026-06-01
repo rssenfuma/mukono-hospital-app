@@ -123,6 +123,9 @@ if st.sidebar.button("🔒 Terminate Session (Logout)"):
 # Display current user metadata in sidebar
 st.sidebar.markdown(f"<div style='color: #1E3A8A; font-size:12px; font-weight:bold;'>Active User: {st.session_state.current_user.upper()}</div>", unsafe_allow_html=True)
 
+# Get active user role clearance
+active_role = USER_CREDENTIALS[st.session_state.current_user]["role"]
+
 # ==============================================================================
 # 3. LOCAL DATA STORAGE AND MANAGEMENT SUBSYSTEM
 # ==============================================================================
@@ -247,7 +250,7 @@ if st.session_state.assessment_triggered:
     st.markdown(f"""<div class="final-decision-banner">{final_decision_path}</div>""", unsafe_allow_html=True)
 
 # ==============================================================================
-# 7. CASE VALIDATION & VERIFICATION (ADMIN-ONLY ACTION CONTROLLED BUTTONS)
+# 7. CASE VALIDATION & VERIFICATION (OPEN TO ALL CURRENT SESSIONS)
 # ==============================================================================
 st.write("")
 st.markdown("<div style='color:#000000; font-size:22px; font-weight:bold; margin-top:20px; border-bottom:2px solid #3B82F6; padding-bottom:5px;'>Case Validation & Verification</div>", unsafe_allow_html=True)
@@ -264,32 +267,27 @@ with col_sig:
     
 st.write("")
 
-# ROLE ACCESS CHECK: Check if active user has administrative role clearance
-active_role = USER_CREDENTIALS[st.session_state.current_user]["role"]
-
-if active_role == "admin":
-    # Admin gets full access to save decisions and clear states
-    if st.button("💾 Save Decision to Clinical Ledger"):
-        if not signature:
-            st.error("Action Blocked: Clinician signature required.")
-        else:
-            patient_record = {
-                "Patient Register ID": patient_id,
-                "Consultation Timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                "Risk Stratification Tier": risk_tier,
-                "Readmission Risk Score (%)": round(readmission_probability * 100, 1),
-                "Attending Clinician": signature
-            }
-            save_prediction_to_records(patient_record)
-            st.success(f"🎉 Success! Profile recorded safely.")
-            st.session_state.assessment_triggered = False
-            st.button("🔄 Refresh Application View", on_click=st.rerun)
-else:
-    # Non-admin users see a disabled warning notification instead of action buttons
-    st.warning("🔒 Database Modification Blocked: Saving directly to the ledger file or resetting structural frames is restricted to Administrative Officers.")
+# EVERYONE CAN SAVE: Both admin and standard user role accounts can commit patient records
+if st.button("💾 Save Decision to Clinical Ledger"):
+    if not signature:
+        st.error("Action Blocked: Clinician signature required.")
+    else:
+        patient_record = {
+            "Patient Register ID": patient_id,
+            "Consultation Timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "Risk Stratification Tier": risk_tier,
+            "Readmission Risk Score (%)": round(readmission_probability * 100, 1),
+            "Attending Clinician": signature
+        }
+        save_prediction_to_records(patient_record)
+        st.success(f"🎉 Success! Profile recorded safely.")
+        st.session_state.assessment_triggered = False
+        
+        # INSTANT REBOOT: Immediately reruns app, turning the upper right corner spinner to inactive
+        st.rerun()
 
 # ==============================================================================
-# 8. EXPANDED HISTORICAL AUDIT TRAIL LOG SHEET (ADMIN-ONLY VISIBILITY & EXPORT)
+# 8. EXPANDED HISTORICAL AUDIT TRAIL LOG SHEET (ADMIN-ONLY EXPORT ACCESS CONTROL)
 # ==============================================================================
 st.write("")
 st.write("")
@@ -311,7 +309,7 @@ if os.path.exists(DB_FILE) and os.path.getsize(DB_FILE) > 0:
             hide_index=True
         )
         
-        # ROLE ACCESS CHECK: Only expose download buttons to the administrative channel
+        # ROLE SECLUSION: Only display download/export utilities if signed into 'admin' account
         if active_role == "admin":
             csv_data = history_df.to_csv(index=False).encode('utf-8')
             st.download_button(
