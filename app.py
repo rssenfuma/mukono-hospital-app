@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import os
+import time
 from datetime import datetime
 
 # ==============================================================================
@@ -71,20 +72,18 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ==============================================================================
-# 2. USER SECURITY STORAGE & DATABASE SUBSYSTEM
+# 2. USER SECURITY STORAGE & DATABASE SUBSYSTEM (FIXED SAVING PATTERN)
 # ==============================================================================
 USERS_FILE = "system_users.csv"
 
 def load_system_users():
     """Loads system credentials from a local file storage database."""
-    # Built-in fallback default accounts
     defaults = {
         "admin": {"password": "mgh2026", "role": "admin"},
         "ronnie": {"password": "informatics25", "role": "user"},
         "doctor": {"password": "mukonohospital", "role": "user"}
     }
     if not os.path.exists(USERS_FILE):
-        # Create file with defaults if it doesn't exist
         rows = []
         for username, info in defaults.items():
             rows.append({"username": username, "password": info["password"], "role": info["role"]})
@@ -95,32 +94,45 @@ def load_system_users():
             df = pd.read_csv(USERS_FILE)
             user_dict = {}
             for _, row in df.iterrows():
-                user_dict[str(row['username']).strip()] = {
+                u_name = str(row['username']).strip().lower()
+                user_dict[u_name] = {
                     "password": str(row['password']).strip(),
-                    "role": str(row['role']).strip()
+                    "role": str(row['role']).strip().lower()
                 }
             return user_dict
         except:
             return defaults
 
 def save_new_user_to_system(username, password, role):
-    """Saves a newly registered clinician account into the system storage."""
+    """Saves a newly registered clinician account into the system storage securely."""
+    cleaned_user = str(username).strip().lower()
+    cleaned_pass = str(password).strip()
+    cleaned_role = str(role).strip().lower()
+    
     if os.path.exists(USERS_FILE):
-        df = pd.read_csv(USERS_FILE)
+        try:
+            df = pd.read_csv(USERS_FILE)
+            # Standardize formatting to prevent mismatch bugs
+            df['username'] = df['username'].astype(str).str.strip().str.lower()
+        except:
+            df = pd.DataFrame(columns=["username", "password", "role"])
     else:
         df = pd.DataFrame(columns=["username", "password", "role"])
     
-    # Remove if user already exists to prevent duplicate rows
-    df = df[df['username'] != username]
+    # Remove existing record if duplicate username exists
+    df = df[df['username'] != cleaned_user]
     
-    new_row = pd.DataFrame([{"username": username, "password": password, "role": role}])
+    # Append the new user row configuration
+    new_row = pd.DataFrame([{"username": cleaned_user, "password": cleaned_pass, "role": cleaned_role}])
     df = pd.concat([df, new_row], ignore_index=True)
+    
+    # Force rewrite to ensure files are completely closed and saved on disk
     df.to_csv(USERS_FILE, index=False)
 
-# Load users from database file
+# Load current credentials map
 USER_CREDENTIALS = load_system_users()
 
-# Initialize security state engines
+# Initialize session security engines
 if "authenticated" not in st.session_state:
     st.session_state.authenticated = False
 if "current_user" not in st.session_state:
@@ -147,17 +159,17 @@ if not st.session_state.authenticated:
         
     st.write("")
     if st.button("Authorize Session Identity", type="primary"):
-        cleaned_user = input_username.strip()
-        if cleaned_user in USER_CREDENTIALS and USER_CREDENTIALS[cleaned_user]["password"] == input_password.strip():
+        target_user = input_username.strip().lower()
+        if target_user in USER_CREDENTIALS and USER_CREDENTIALS[target_user]["password"] == input_password.strip():
             st.session_state.authenticated = True
-            st.session_state.current_user = cleaned_user
-            st.success(f"Authorization Confirmed. Welcome back, {cleaned_user}")
+            st.session_state.current_user = target_user
+            st.success(f"Authorization Confirmed. Welcome back, {target_user}")
             st.rerun()
         else:
             st.error("Authentication Refused: The credentials provided do not match any authorized keys.")
     st.stop()
 
-# Logout control layout
+# Logout controller layout
 if st.sidebar.button("🔒 Terminate Session (Logout)"):
     st.session_state.authenticated = False
     st.session_state.current_user = None
@@ -356,7 +368,7 @@ if os.path.exists(DB_FILE) and os.path.getsize(DB_FILE) > 0:
                 mime="text/csv"
             )
         else:
-            st.info("ℹ Rose sheet data export options are locked for your user level.")
+            st.info("ℹ️ Excel sheet data export options are locked for your user level.")
             
     except Exception as e:
         st.error(f"Error parsing file: {e}")
@@ -364,7 +376,7 @@ else:
     st.info("No records are currently logged in the relational database ledger.")
 
 # ==============================================================================
-# 10. ADMINISTRATIVE USER MANAGEMENT HUBS (EXCLUSIVE TO ADMIN SESSIONS)
+# 10. ADMINISTRATIVE USER MANAGEMENT HUBS (FIXED RUN TIME BUFFER)
 # ==============================================================================
 if active_role == "admin":
     st.write("")
@@ -390,9 +402,19 @@ if active_role == "admin":
     st.write("")
     if st.button("➕ Add & Register Account", type="secondary"):
         cleaned_new_user = new_user.strip().lower()
-        if not cleaned_new_user or not new_pass.strip():
+        cleaned_new_pass = new_pass.strip()
+        
+        if not cleaned_new_user or not cleaned_new_pass:
             st.error("Registration Blocked: Username and Password fields cannot be empty.")
         else:
-            save_new_user_to_system(cleaned_new_user, new_pass.strip(), new_role)
-            st.success(f"🎉 Success! Account '{cleaned_new_user}' registered with '{new_role.upper()}' clearance levels.")
+            # 1. Commit straight to structural disk
+            save_new_user_to_system(cleaned_new_user, cleaned_new_pass, new_role)
+            
+            # 2. Display success feedback toast
+            st.success(f"🎉 Success! Account '{cleaned_new_user}' registered permanently.")
+            
+            # 3. Brief sleep loop to allow file streams to finish closing on slower systems
+            time.sleep(0.5)
+            
+            # 4. Clear layout and reload states cleanly
             st.rerun()
