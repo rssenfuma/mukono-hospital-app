@@ -79,9 +79,7 @@ USERS_FILE = "system_users.csv"
 def load_system_users():
     defaults = {
         "admin": {"password": "mgh2026", "role": "admin"},
-        "ronnie": {"password": "informatics25", "role": "user"},
-        "doctor": {"password": "mukonohospital", "role": "user"}
-    }
+         }
     if not os.path.exists(USERS_FILE):
         rows = []
         for username, info in defaults.items():
