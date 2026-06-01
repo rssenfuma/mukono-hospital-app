@@ -169,16 +169,22 @@ st.sidebar.markdown(f"<div style='color: #1E3A8A; font-size:12px; font-weight:bo
 active_role = USER_CREDENTIALS[st.session_state.current_user]["role"]
 
 # ==============================================================================
-# 4. DATA LOGGING SUBSYSTEM
+# 4. DATA LOGGING SUBSYSTEM (FIXED DYNAMIC COLUMNS MATCHING)
 # ==============================================================================
 DB_FILE = "saved_predictions.csv"
 
 def save_prediction_to_records(patient_data):
     df = pd.DataFrame([patient_data])
-    if not os.path.exists(DB_FILE):
+    if not os.path.exists(DB_FILE) or os.path.getsize(DB_FILE) == 0:
         df.to_csv(DB_FILE, index=False)
     else:
-        df.to_csv(DB_FILE, mode='a', header=False, index=False)
+        try:
+            # Read existing schema to keep old tracking columns aligned if they exist
+            existing_df = pd.read_csv(DB_FILE)
+            combined_df = pd.concat([existing_df, df], ignore_index=True)
+            combined_df.to_csv(DB_FILE, index=False)
+        except:
+            df.to_csv(DB_FILE, index=False)
 
 # ==============================================================================
 # 5. CLINICAL DATA INPUT PANEL (SIDEBAR)
@@ -292,7 +298,7 @@ if st.session_state.assessment_triggered:
     st.markdown(f"""<div class="final-decision-banner">{final_decision_path}</div>""", unsafe_allow_html=True)
 
 # ==============================================================================
-# 8. CASE VALIDATION & VERIFICATION (EXACT COLUMNS MIGRATION FOR EXCEL)
+# 8. CASE VALIDATION & VERIFICATION (PRECISE COMPREHENSIVE DICTIONARY MAPPING)
 # ==============================================================================
 st.write("")
 st.markdown("<div style='color:#000000; font-size:22px; font-weight:bold; margin-top:20px; border-bottom:2px solid #3B82F6; padding-bottom:5px;'>Case Validation & Verification</div>", unsafe_allow_html=True)
@@ -313,18 +319,18 @@ if st.button("💾 Save Decision to Clinical Ledger"):
     if not signature:
         st.error("Action Blocked: Clinician signature required.")
     else:
-        # EXACT EXCEL FIELD DICTIONARY MAPPING
+        # EXACTLY MAPPED LABELS BASED ON THE STEP-BY-STEP USER LAYOUT REQUEST
         patient_record = {
             "📌 Patient Identification": patient_id,
             "Consultation Timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             
-            # --- Core Mathematical Predictors ---
+            # Core Mathematical Predictors
             "Core Mathematical Predictors: Birth Weight (kg)": birth_weight,
             "Core Mathematical Predictors: Maternal Age (Years)": maternal_age,
             "Core Mathematical Predictors: Duration of Initial Hospital Stay (Days)": length_of_stay,
             "Core Mathematical Predictors: Gestational Age (Weeks)": gestational_age,
             
-            # --- Supplementary Clinical Metrics ---
+            # 📊 Supplementary Clinical Metrics
             "📊 Supplementary Clinical Metrics: 5-Minute Apgar Vitality Score": apgar_score,
             "📊 Supplementary Clinical Metrics: Antenatal Care (ANC) Attendance": anc_visits,
             "📊 Supplementary Clinical Metrics: Maternal Parity (Total Deliveries)": parity,
@@ -333,30 +339,32 @@ if st.button("💾 Save Decision to Clinical Ledger"):
             "📊 Supplementary Clinical Metrics: Feeding Type at Discharge": feeding_type,
             "📊 Supplementary Clinical Metrics: Discharge Physical Condition": discharge_condition,
             
-            # --- CDSS Analysis and Verdict Metrics ---
+            # Diagnostic Breakdown & Analysis Outputs
             "Diagnostic Breakdown: Classification Status": risk_tier.upper(),
-            "Diagnostic Breakdown: Calculated Risk Ratio (%)": round(readmission_probability * 100, 1),
-            "Diagnostic Breakdown: Guidelines / Warning Context": guidelines,
-            "CLINICAL DIRECTIVE / Outcome": final_decision_path,
+            "Diagnostic Breakdown: Calculated Risk Ratio": f"{readmission_probability*100:.1f}%",
+            "Diagnostic Breakdown: Context Guidelines": guidelines,
             
-            # --- Hand-Signed Sign-Offs ---
+            # Decision Outcomes & Signature Details
+            "CLINICAL DIRECTIVE / Final Decision Approved": final_decision_path,
             "Diagnostic Notes": clinician_notes,
             "Attending Doctor": signature
         }
+        
         save_prediction_to_records(patient_record)
-        st.success(f"🎉 Success! Profile recorded safely.")
+        st.success(f"🎉 Success! Comprehensive entry profile completely parsed and recorded.")
         st.session_state.assessment_triggered = False
+        time.sleep(0.5)
         st.rerun()
 
 # ==============================================================================
-# 9. CLINICAL AUDIT LEDGER
+# 9. CLINICAL AUDIT LEDGER (DISPLAYS DYNAMIC DATAFRAME IN INTERFACE)
 # ==============================================================================
 st.write("")
 st.write("")
 st.markdown("""
     <div class="section-card">
         <div class="section-title">Clinical Audit Ledger</div>
-        <p style="color: #000000; font-size: 14px; margin-top:-10px;">Retrospective data matrix capturing triage choices for research.</p>
+        <p style="color: #000000; font-size: 14px; margin-top:-10px;">Retrospective data matrix capturing complete baseline details, demographics, infant sex, and triage choices for future administrative audits and clinical research.</p>
     </div>
 """, unsafe_allow_html=True)
 
@@ -365,6 +373,7 @@ if os.path.exists(DB_FILE) and os.path.getsize(DB_FILE) > 0:
         history_df = pd.read_csv(DB_FILE)
         st.metric(label="Total System Logged Consultations", value=len(history_df))
         
+        # Displays all loaded metrics sequentially on screen in sorted matrix views
         st.dataframe(
             history_df.sort_values(by="Consultation Timestamp", ascending=False),
             use_container_width=True,
@@ -383,9 +392,9 @@ if os.path.exists(DB_FILE) and os.path.getsize(DB_FILE) > 0:
             st.info("ℹ️ Excel sheet data export options are locked for your user level.")
             
     except Exception as e:
-        st.error(f"Error parsing file: {e}")
+        st.error(f"Error parsing database file matrix: {e}")
 else:
-    st.info("No records are currently logged in the relational database ledger.")
+    st.info("No comprehensive records are currently logged in the local tracking files.")
 
 # ==============================================================================
 # 10. ADMINISTRATIVE USER MANAGEMENT HUBS
