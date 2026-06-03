@@ -93,9 +93,7 @@ USERS_FILE = "system_users.csv"
 def load_system_users():
     defaults = {
         "admin": {"password": "mgh2026", "role": "admin"},
-        "ronnie": {"password": "informatics25", "role": "user"},
-        "doctor": {"password": "mukonohospital", "role": "user"}
-    }
+         }
     if not os.path.exists(USERS_FILE):
         rows = []
         for username, info in defaults.items():
@@ -233,7 +231,7 @@ gestational_age = st.sidebar.slider("Gestational Age (Weeks)", min_value=20, max
 
 # Section 3.3: Secondary Clinical Covariates
 st.sidebar.markdown("---")
-st.sidebar.markdown("<div style='color:#000000; font-weight:bold;'>📊 Supplementary Clinical Metrics</div>", unsafe_allow_html=True)
+st.sidebar.markdown("<div style='color:#000000; font-weight:bold;'>Supplementary Clinical Metrics</div>", unsafe_allow_html=True)
 
 st.sidebar.markdown("<div style='color:#000000; font-size:14px; margin-top:5px;'>5-Minute Apgar Vitality Score</div>", unsafe_allow_html=True)
 apgar_score = st.sidebar.slider("5-Minute Apgar Vitality Score", min_value=0, max_value=10, value=7, step=1, label_visibility="collapsed")
