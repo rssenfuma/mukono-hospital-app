@@ -85,6 +85,102 @@ st.markdown("""
         <div class="hospital-subtitle">Point-of-Care Neonatal 28-Day Readmission Risk Triage Platform — Health Informatics Prototype</div>
     </div>
 """, unsafe_allow_html=True)
+# ==============================================================================
+# 2. USER SECURITY STORAGE & DATABASE SUBSYSTEM
+# ==============================================================================
+USERS_FILE = "system_users.csv"
+
+def load_system_users():
+    defaults = {
+        "admin": {"password": "mgh2026", "role": "admin"},
+        "ronnie": {"password": "informatics25", "role": "user"},
+        "doctor": {"password": "mukonohospital", "role": "user"}
+    }
+    if not os.path.exists(USERS_FILE):
+        rows = []
+        for username, info in defaults.items():
+            rows.append({"username": username, "password": info["password"], "role": info["role"]})
+        pd.DataFrame(rows).to_csv(USERS_FILE, index=False)
+        return defaults
+    else:
+        try:
+            df = pd.read_csv(USERS_FILE)
+            user_dict = {}
+            for _, row in df.iterrows():
+                u_name = str(row['username']).strip().lower()
+                user_dict[u_name] = {
+                    "password": str(row['password']).strip(),
+                    "role": str(row['role']).strip().lower()
+                }
+            return user_dict
+        except:
+            return defaults
+
+def save_new_user_to_system(username, password, role):
+    cleaned_user = str(username).strip().lower()
+    cleaned_pass = str(password).strip()
+    cleaned_role = str(role).strip().lower()
+    
+    if os.path.exists(USERS_FILE):
+        try:
+            df = pd.read_csv(USERS_FILE)
+            df['username'] = df['username'].astype(str).str.strip().str.lower()
+        except:
+            df = pd.DataFrame(columns=["username", "password", "role"])
+    else:
+        df = pd.DataFrame(columns=["username", "password", "role"])
+    
+    df = df[df['username'] != cleaned_user]
+    new_row = pd.DataFrame([{"username": cleaned_user, "password": cleaned_pass, "role": cleaned_role}])
+    df = pd.concat([df, new_row], ignore_index=True)
+    df.to_csv(USERS_FILE, index=False)
+
+USER_CREDENTIALS = load_system_users()
+
+if "authenticated" not in st.session_state:
+    st.session_state.authenticated = False
+if "current_user" not in st.session_state:
+    st.session_state.current_user = None
+
+# ==============================================================================
+# 3. CLINICAL GATEWAY LOGIN TERMINAL
+# ==============================================================================
+if not st.session_state.authenticated:
+    st.markdown("""
+        <div class="section-card" style="border-left: 5px solid #EF4444;">
+            <div class="section-title" style="color: #DC2626 !important;">🔒 Secure Clinical Gateway Access Authorization Required</div>
+            <p style="color: #000000; font-size: 14px; margin-top:-10px;">This platform contains clinical evaluation algorithms and audited registry data streams. Please authenticate using authorized staff credentials.</p>
+        </div>
+    """, unsafe_allow_html=True)
+    
+    col_l1, col_l2 = st.columns(2)
+    with col_l1:
+        st.markdown("<div style='color:#000000; font-size:14px; font-weight:bold; margin-bottom:5px;'>User ID / System Username:</div>", unsafe_allow_html=True)
+        input_username = st.text_input("Username Input Area", placeholder="Enter official username...", label_visibility="collapsed")
+    with col_l2:
+        st.markdown("<div style='color:#000000; font-size:14px; font-weight:bold; margin-bottom:5px;'>Security Passcode / Password:</div>", unsafe_allow_html=True)
+        input_password = st.text_input("Password Input Area", type="password", placeholder="Enter secure password...", label_visibility="collapsed")
+        
+    st.write("")
+    if st.button("Authorize Session Identity", type="primary"):
+        target_user = input_username.strip().lower()
+        if target_user in USER_CREDENTIALS and USER_CREDENTIALS[target_user]["password"] == input_password.strip():
+            st.session_state.authenticated = True
+            st.session_state.current_user = target_user
+            st.success(f"Authorization Confirmed. Welcome back, {target_user}")
+            st.rerun()
+        else:
+            st.error("Authentication Refused: The credentials provided do not match any authorized keys.")
+    st.stop()
+
+if st.sidebar.button("🔒 Terminate Session (Logout)"):
+    st.session_state.authenticated = False
+    st.session_state.current_user = None
+    st.session_state.assessment_triggered = False
+    st.rerun()
+
+st.sidebar.markdown(f"<div style='color: #1E3A8A; font-size:12px; font-weight:bold;'>Active User: {st.session_state.current_user.upper()}</div>", unsafe_allow_html=True)
+active_role = USER_CREDENTIALS[st.session_state.current_user]["role"]
 
 # ==============================================================================
 # 2. LOCAL DATA STORAGE AND MANAGEMENT SUBSYSTEM
@@ -160,9 +256,6 @@ feeding_type = st.sidebar.selectbox("Feeding Type at Discharge", ["Exclusive Bre
 st.sidebar.markdown("<div style='color:#000000; font-size:14px; margin-top:5px;'>Discharge Physical Condition</div>", unsafe_allow_html=True)
 discharge_condition = st.sidebar.selectbox("Discharge Physical Condition", ["Stable", "Improved", "Critical"], label_visibility="collapsed")
 
-# ==============================================================================
-# 4. RANDOM FOREST PREDICTIVE SIMULATION PATTERN
-# ==============================================================================
 # ==============================================================================
 # 4. RANDOM FOREST MACHINE LEARNING PREDICTION ENGINE
 # ==============================================================================
@@ -359,3 +452,39 @@ if os.path.exists(DB_FILE) and os.path.getsize(DB_FILE) > 0:
         st.error(f"Error parsing historical tracking files: {e}")
 else:
     st.info("No records are currently logged in the relational database ledger.")
+    # ==============================================================================
+# 10. ADMINISTRATIVE USER MANAGEMENT HUBS
+# ==============================================================================
+if active_role == "admin":
+    st.write("")
+    st.write("")
+    st.markdown("""
+        <div class="section-card" style="border-left: 5px solid #10B981;">
+            <div class="section-title" style="color: #047857 !important;">👥 Administrative Management Console: System User Accounts</div>
+            <p style="color: #000000; font-size: 14px; margin-top:-10px;">Register new clinician accounts or change user authorizations here. This panel is hidden from standard users.</p>
+        </div>
+    """, unsafe_allow_html=True)
+    
+    col_u1, col_u2, col_u3 = st.columns(3)
+    with col_u1:
+        st.markdown("<div style='color:#000000; font-size:14px; font-weight:bold; margin-bottom:5px;'>New Account Username:</div>", unsafe_allow_html=True)
+        new_user = st.text_input("New Username Input", placeholder="e.g., nurse_mary", label_visibility="collapsed")
+    with col_u2:
+        st.markdown("<div style='color:#000000; font-size:14px; font-weight:bold; margin-bottom:5px;'>Account Access Password:</div>", unsafe_allow_html=True)
+        new_pass = st.text_input("New Password Input", type="password", placeholder="Set a secure password...", label_visibility="collapsed")
+    with col_u3:
+        st.markdown("<div style='color:#000000; font-size:14px; font-weight:bold; margin-bottom:5px;'>Assign Permissions Level:</div>", unsafe_allow_html=True)
+        new_role = st.selectbox("New Role Selection", ["user", "admin"], label_visibility="collapsed")
+        
+    st.write("")
+    if st.button("➕ Add & Register Account", type="secondary"):
+        cleaned_new_user = new_user.strip().lower()
+        cleaned_new_pass = new_pass.strip()
+        
+        if not cleaned_new_user or not cleaned_new_pass:
+            st.error("Registration Blocked: Username and Password fields cannot be empty.")
+        else:
+            save_new_user_to_system(cleaned_new_user, cleaned_new_pass, new_role)
+            st.success(f"🎉 Success! Account '{cleaned_new_user}' registered permanently.")
+            time.sleep(0.5)
+            st.rerun()
