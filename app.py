@@ -4,6 +4,7 @@ import numpy as np
 import os
 import time
 from datetime import datetime
+import joblib
 
 # ==============================================================================
 # 1. GLOBAL PAGE ARCHITECTURE & PROFESSIONAL STYLING
@@ -171,6 +172,10 @@ active_role = USER_CREDENTIALS[st.session_state.current_user]["role"]
 # ==============================================================================
 DB_FILE = "saved_predictions.csv"
 
+rf_model = joblib.load("models/rf_model.joblib")
+scaler = joblib.load("models/scaler.joblib")
+encoders = joblib.load("models/categorical_encoders.joblib")
+
 def save_prediction_to_records(patient_data):
     df = pd.DataFrame([patient_data])
     
@@ -240,15 +245,49 @@ discharge_condition = st.sidebar.selectbox("Discharge Physical Condition", ["Sta
 # ==============================================================================
 # 6. RANDOM FOREST PREDICTIVE SIMULATION PATTERN
 # ==============================================================================
-base_score = 0.50
-if birth_weight < 2.5: base_score += 0.15      
-if birth_weight >= 3.5: base_score -= 0.05
-if maternal_age < 18 or maternal_age > 38: base_score += 0.12 
-if length_of_stay > 5: base_score += 0.14      
-if gestational_age < 37: base_score += 0.12    
-if apgar_score < 6: base_score += 0.10          
+try:
 
-readmission_probability = float(np.clip(base_score, 0.15, 0.95))
+    mode_delivery_encoded = encoders['Mode_of_Delivery'].transform(
+        [mode_of_delivery]
+    )[0]
+
+    sex_encoded = encoders['Sex_of_Neonate'].transform(
+        [sex_neonate]
+    )[0]
+
+    feeding_encoded = encoders['Feeding_Type_at_Discharge'].transform(
+        [feeding_type]
+    )[0]
+
+    discharge_encoded = encoders['Discharge_Condition'].transform(
+        [discharge_condition]
+    )[0]
+
+    input_df = pd.DataFrame([{
+        'Maternal_Age': maternal_age,
+        'Parity': parity,
+        'ANC_Attendance_Visits': anc_visits,
+        'Mode_of_Delivery': mode_delivery_encoded,
+        'Sex_of_Neonate': sex_encoded,
+        'Birth_Weight_kg': birth_weight,
+        'Gestational_Age_Weeks': gestational_age,
+        'Apgar_5min': apgar_score,
+        'Feeding_Type_at_Discharge': feeding_encoded,
+        'Duration_of_Initial_Stay_Days': length_of_stay,
+        'Discharge_Condition': discharge_encoded
+    }])
+
+    input_scaled = scaler.transform(input_df)
+
+    readmission_probability = float(
+        rf_model.predict_proba(input_scaled)[0][1]
+    )
+
+except Exception as e:
+
+    st.error(f"Model Prediction Error: {e}")
+
+    readmission_probability = 0.50
 
 if readmission_probability >= 0.70:
     risk_tier, alert_color = "High Risk", "error"
