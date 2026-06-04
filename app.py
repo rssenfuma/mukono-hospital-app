@@ -322,16 +322,8 @@ apgar_score = st.sidebar.slider("5-Minute Apgar Vitality Score", min_value=0, ma
 st.sidebar.markdown("<div style='color:#000000; font-size:14px; margin-top:5px;'>Antenatal Care (ANC) Attendance</div>", unsafe_allow_html=True)
 anc_visits = st.sidebar.slider("Antenatal Care (ANC) Attendance", min_value=0, max_value=12, value=4, step=1, label_visibility="collapsed")
 
-st.sidebar.markdown(
-    "<div style='color:#000000; font-size:14px; margin-top:5px;'>Follow-up Appointment Given</div>",
-    unsafe_allow_html=True
-)
-
-followup_appointment = st.sidebar.selectbox(
-    "Follow-up Appointment Given",
-    ["Yes", "No"],
-    label_visibility="collapsed"
-)
+st.sidebar.markdown("<div style='color:#000000; font-size:14px; margin-top:5px;'>Follow-up Appointment Given</div>", unsafe_allow_html=True)
+followup_appointment = st.sidebar.selectbox("Follow-up Appointment Given", ["Yes", "No"], label_visibility="collapsed")
 
 st.sidebar.markdown("<div style='color:#000000; font-size:14px; margin-top:5px;'>Maternal Parity (Total Deliveries)</div>", unsafe_allow_html=True)
 parity = st.sidebar.number_input("Maternal Parity (Total Deliveries)", min_value=1, max_value=15, value=2, step=1, label_visibility="collapsed")
