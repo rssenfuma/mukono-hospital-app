@@ -352,7 +352,6 @@ discharge_condition = st.sidebar.selectbox("Discharge Physical Condition", ["Sta
 # 4. RANDOM FOREST MACHINE LEARNING PREDICTION ENGINE
 # ==============================================================================
 try:
-
     mode_delivery_encoded = encoders['Mode_of_Delivery'].transform(
         [mode_of_delivery]
     )[0]
