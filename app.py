@@ -191,16 +191,10 @@ active_role = USER_CREDENTIALS[st.session_state.current_user]["role"]
 # 2. LOCAL DATA STORAGE AND MANAGEMENT SUBSYSTEM
 # ==============================================================================
 DB_FILE = "saved_predictions.csv"
-def safe_encode(encoders, key, value):
-    encoder = encoders.get(key)
-    if encoder is None:
-        return 0
-    return encoder.transform([value])[0]
-    
+
 rf_model = joblib.load("models/rf_model.joblib")
 scaler = joblib.load("models/scaler.joblib")
 encoders = joblib.load("models/categorical_encoders.joblib")
-st.write("ENCODER KEYS:", encoders.keys())
 # ==============================================================================
 # MODEL INFORMATION
 # ==============================================================================
@@ -328,8 +322,16 @@ apgar_score = st.sidebar.slider("5-Minute Apgar Vitality Score", min_value=0, ma
 st.sidebar.markdown("<div style='color:#000000; font-size:14px; margin-top:5px;'>Antenatal Care (ANC) Attendance</div>", unsafe_allow_html=True)
 anc_visits = st.sidebar.slider("Antenatal Care (ANC) Attendance", min_value=0, max_value=12, value=4, step=1, label_visibility="collapsed")
 
-st.sidebar.markdown("<div style='color:#000000; font-size:14px; margin-top:5px;'>Follow-up Appointment Given</div>", unsafe_allow_html=True)
-followup_appointment = st.sidebar.selectbox("Follow-up Appointment Given", ["Yes", "No"], label_visibility="collapsed")
+st.sidebar.markdown(
+    "<div style='color:#000000; font-size:14px; margin-top:5px;'>Follow-up Appointment Given</div>",
+    unsafe_allow_html=True
+)
+
+followup_appointment = st.sidebar.selectbox(
+    "Follow-up Appointment Given",
+    ["Yes", "No"],
+    label_visibility="collapsed"
+)
 
 st.sidebar.markdown("<div style='color:#000000; font-size:14px; margin-top:5px;'>Maternal Parity (Total Deliveries)</div>", unsafe_allow_html=True)
 parity = st.sidebar.number_input("Maternal Parity (Total Deliveries)", min_value=1, max_value=15, value=2, step=1, label_visibility="collapsed")
@@ -350,20 +352,27 @@ discharge_condition = st.sidebar.selectbox("Discharge Physical Condition", ["Sta
 # 4. RANDOM FOREST MACHINE LEARNING PREDICTION ENGINE
 # ==============================================================================
 try:
-    mode_delivery_encoded = encoders['Mode_of_Delivery'].transform([mode_of_delivery])[0]
 
-    sex_encoded = encoders['Sex_of_Neonate'].transform([sex_neonate])[0]
+    mode_delivery_encoded = encoders['Mode_of_Delivery'].transform(
+        [mode_of_delivery]
+    )[0]
 
-    feeding_encoded = encoders['Feeding_Type_at_Discharge'].transform([feeding_type])[0]
+    sex_encoded = encoders['Sex_of_Neonate'].transform(
+        [sex_neonate]
+    )[0]
 
-    discharge_encoded = encoders['Discharge_Condition'].transform([discharge_condition])[0]
+    feeding_encoded = encoders['Feeding_Type_at_Discharge'].transform(
+        [feeding_type]
+    )[0]
 
-    followup_encoder = encoders.get('Followup_Appointment_Given')
+    discharge_encoded = encoders['Discharge_Condition'].transform(
+        [discharge_condition]
+    )[0]
 
-    if followup_encoder is None:
-        followup_encoded = 0
-    else:
-        followup_encoded = followup_encoder.transform([followup_appointment])[0]
+    followup_encoded = encoders['Followup_Appointment_Given'].transform(
+        [followup_appointment]
+    )[0]
+
     input_df = pd.DataFrame([{
         'Maternal_Age': maternal_age,
         'Parity': parity,
