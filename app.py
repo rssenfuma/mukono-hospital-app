@@ -213,73 +213,18 @@ def save_prediction_to_records(patient_data):
     else:
         df.to_csv(DB_FILE, mode='a', header=False, index=False)
 # ==============================================================================
-# MACHINE LEARNING MODEL PERFORMANCE
+# CLINICAL SYSTEM OVERVIEW (CLEAN VERSION)
 # ==============================================================================
+
 st.markdown("""
 <div class="section-card">
-    <div class="section-title">Machine Learning Model Performance Evaluation</div>
+    <div class="section-title">Clinical Decision Support System</div>
+    <p style="color:#000000; font-size:14px;">
+    This system uses a trained Random Forest model to estimate neonatal 28-day readmission risk
+    based on maternal, neonatal, and delivery-related clinical factors.
+    </p>
 </div>
 """, unsafe_allow_html=True)
-
-performance_df = pd.DataFrame({
-    "Classifier": [
-        "Logistic Regression",
-        "Random Forest",
-        "Support Vector Machine"
-    ],
-    "Accuracy": [89.10, 95.27, 91.30],
-    "Sensitivity": [66.67, 79.17, 63.33],
-    "Specificity": [91.05, 96.67, 93.73],
-    "AUC-ROC": [91.61, 97.58, 93.06]
-})
-
-st.dataframe(performance_df, use_container_width=True)
-
-col1, col2, col3, col4 = st.columns(4)
-
-with col1:
-    st.metric("Accuracy", MODEL_ACCURACY)
-
-with col2:
-    st.metric("Sensitivity", MODEL_SENSITIVITY)
-
-with col3:
-    st.metric("Specificity", MODEL_SPECIFICITY)
-
-with col4:
-    st.metric("AUC-ROC", MODEL_AUC)
-
-st.success(
-    "Production Model: Random Forest Classifier (Best Performing Model)"
-)
-# ==============================================================================
-# TOP PREDICTORS IDENTIFIED DURING MODEL TRAINING
-# ==============================================================================
-st.markdown("""
-<div class="section-card">
-    <div class="section-title">Top Predictors of Neonatal Readmission</div>
-</div>
-""", unsafe_allow_html=True)
-
-importance_df = pd.DataFrame({
-    "Predictor": [
-        "Birth Weight",
-        "Maternal Age",
-        "Length of Stay",
-        "Gestational Age"
-    ],
-    "Relative Importance (%)": [
-        24.5,
-        18.9,
-        15.8,
-        13.6
-    ]
-})
-
-st.dataframe(
-    importance_df,
-    use_container_width=True
-)
 # ==============================================================================
 # 3. CLINICAL DATA INPUT PANEL (SIDEBAR) WITH AUTO-GENERATED ID
 # ==============================================================================
@@ -352,6 +297,7 @@ discharge_condition = st.sidebar.selectbox("Discharge Physical Condition", ["Sta
 # 4. RANDOM FOREST MACHINE LEARNING PREDICTION ENGINE
 # ==============================================================================
 try:
+
     mode_delivery_encoded = encoders['Mode_of_Delivery'].transform(
         [mode_of_delivery]
     )[0]
@@ -480,7 +426,7 @@ col_sig, col_space = st.columns([2, 2])
 with col_sig:
     st.write("")
     # Forced Black Title Label for Doctor Sign-off Input Area
-    st.markdown("<div style='color:#000000; font-size:15px; font-weight:bold; margin-bottom:5px;'>Attending Doctor (Full Name & Cadre Code):</div>", unsafe_allow_html=True)
+    st.markdown("<div style='color:#000000; font-size:15px; font-weight:bold; margin-bottom:5px;'>Attending Doctor:</div>", unsafe_allow_html=True)
     signature = st.text_input(
         "Attending Doctor", 
         placeholder="e.g., Dr. Ronnie Ssenfuma - Paediatrician",
@@ -552,7 +498,7 @@ if os.path.exists(DB_FILE) and os.path.getsize(DB_FILE) > 0:
         csv_data = history_df.to_csv(index=False).encode("utf-8")
 
         st.download_button(
-            label="Export Excel Spreadsheet",
+            label="Export Spreadsheet",
             data=csv_data,
             file_name=f"mgh_cdss_audit_export_{datetime.now().strftime('%Y%m%d_%H%M')}.csv",
             mime="text/csv"
@@ -571,7 +517,7 @@ if active_role == "admin":
     st.write("")
     st.markdown("""
         <div class="section-card" style="border-left: 5px solid #10B981;">
-            <div class="section-title" style="color: #047857 !important;">👥 Administrative Management Console: System User Accounts</div>
+            <div class="section-title" style="color: #047857 !important;">👥System User Accounts</div>
             <p style="color: #000000; font-size: 14px; margin-top:-10px;">Register new clinician accounts or change user authorizations here. This panel is hidden from standard users.</p>
         </div>
     """, unsafe_allow_html=True)
