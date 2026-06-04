@@ -4,7 +4,7 @@ import numpy as np
 import os
 from datetime import datetime
 import joblib
-
+import time
 # ==============================================================================
 # 1. GLOBAL PAGE ARCHITECTURE & PROFESSIONAL STYLING
 # ==============================================================================
@@ -115,10 +115,11 @@ def load_system_users():
             return defaults
 
 def save_new_user_to_system(username, password, role):
+
     cleaned_user = str(username).strip().lower()
     cleaned_pass = str(password).strip()
     cleaned_role = str(role).strip().lower()
-    
+
     if os.path.exists(USERS_FILE):
         try:
             df = pd.read_csv(USERS_FILE)
@@ -127,9 +128,15 @@ def save_new_user_to_system(username, password, role):
             df = pd.DataFrame(columns=["username", "password", "role"])
     else:
         df = pd.DataFrame(columns=["username", "password", "role"])
-    
+
     df = df[df['username'] != cleaned_user]
-    new_row = pd.DataFrame([{"username": cleaned_user, "password": cleaned_pass, "role": cleaned_role}])
+
+    new_row = pd.DataFrame([{
+        "username": cleaned_user,
+        "password": cleaned_pass,
+        "role": cleaned_role
+    }])
+
     df = pd.concat([df, new_row], ignore_index=True)
     df.to_csv(USERS_FILE, index=False)
 
@@ -188,6 +195,15 @@ DB_FILE = "saved_predictions.csv"
 rf_model = joblib.load("models/rf_model.joblib")
 scaler = joblib.load("models/scaler.joblib")
 encoders = joblib.load("models/categorical_encoders.joblib")
+# ==============================================================================
+# MODEL INFORMATION
+# ==============================================================================
+MODEL_NAME = "Random Forest Classifier"
+MODEL_VERSION = "1.0"
+MODEL_ACCURACY = "95.27%"
+MODEL_AUC = "97.58%"
+MODEL_SENSITIVITY = "79.17%"
+MODEL_SPECIFICITY = "96.67%"
 
 def save_prediction_to_records(patient_data):
     """Appends evaluated clinical factors and system decisions to a permanent local CSV ledger."""
@@ -196,7 +212,74 @@ def save_prediction_to_records(patient_data):
         df.to_csv(DB_FILE, index=False)
     else:
         df.to_csv(DB_FILE, mode='a', header=False, index=False)
+# ==============================================================================
+# MACHINE LEARNING MODEL PERFORMANCE
+# ==============================================================================
+st.markdown("""
+<div class="section-card">
+    <div class="section-title">Machine Learning Model Performance Evaluation</div>
+</div>
+""", unsafe_allow_html=True)
 
+performance_df = pd.DataFrame({
+    "Classifier": [
+        "Logistic Regression",
+        "Random Forest",
+        "Support Vector Machine"
+    ],
+    "Accuracy": [89.10, 95.27, 91.30],
+    "Sensitivity": [66.67, 79.17, 63.33],
+    "Specificity": [91.05, 96.67, 93.73],
+    "AUC-ROC": [91.61, 97.58, 93.06]
+})
+
+st.dataframe(performance_df, use_container_width=True)
+
+col1, col2, col3, col4 = st.columns(4)
+
+with col1:
+    st.metric("Accuracy", MODEL_ACCURACY)
+
+with col2:
+    st.metric("Sensitivity", MODEL_SENSITIVITY)
+
+with col3:
+    st.metric("Specificity", MODEL_SPECIFICITY)
+
+with col4:
+    st.metric("AUC-ROC", MODEL_AUC)
+
+st.success(
+    "Production Model: Random Forest Classifier (Best Performing Model)"
+)
+# ==============================================================================
+# TOP PREDICTORS IDENTIFIED DURING MODEL TRAINING
+# ==============================================================================
+st.markdown("""
+<div class="section-card">
+    <div class="section-title">Top Predictors of Neonatal Readmission</div>
+</div>
+""", unsafe_allow_html=True)
+
+importance_df = pd.DataFrame({
+    "Predictor": [
+        "Birth Weight",
+        "Maternal Age",
+        "Length of Stay",
+        "Gestational Age"
+    ],
+    "Relative Importance (%)": [
+        24.5,
+        18.9,
+        15.8,
+        13.6
+    ]
+})
+
+st.dataframe(
+    importance_df,
+    use_container_width=True
+)
 # ==============================================================================
 # 3. CLINICAL DATA INPUT PANEL (SIDEBAR) WITH AUTO-GENERATED ID
 # ==============================================================================
@@ -239,6 +322,17 @@ apgar_score = st.sidebar.slider("5-Minute Apgar Vitality Score", min_value=0, ma
 st.sidebar.markdown("<div style='color:#000000; font-size:14px; margin-top:5px;'>Antenatal Care (ANC) Attendance</div>", unsafe_allow_html=True)
 anc_visits = st.sidebar.slider("Antenatal Care (ANC) Attendance", min_value=0, max_value=12, value=4, step=1, label_visibility="collapsed")
 
+st.sidebar.markdown(
+    "<div style='color:#000000; font-size:14px; margin-top:5px;'>Follow-up Appointment Given</div>",
+    unsafe_allow_html=True
+)
+
+followup_appointment = st.sidebar.selectbox(
+    "Follow-up Appointment Given",
+    ["Yes", "No"],
+    label_visibility="collapsed"
+)
+
 st.sidebar.markdown("<div style='color:#000000; font-size:14px; margin-top:5px;'>Maternal Parity (Total Deliveries)</div>", unsafe_allow_html=True)
 parity = st.sidebar.number_input("Maternal Parity (Total Deliveries)", min_value=1, max_value=15, value=2, step=1, label_visibility="collapsed")
 
@@ -257,7 +351,6 @@ discharge_condition = st.sidebar.selectbox("Discharge Physical Condition", ["Sta
 # ==============================================================================
 # 4. RANDOM FOREST MACHINE LEARNING PREDICTION ENGINE
 # ==============================================================================
-
 try:
 
     mode_delivery_encoded = encoders['Mode_of_Delivery'].transform(
@@ -276,6 +369,10 @@ try:
         [discharge_condition]
     )[0]
 
+    followup_encoded = encoders['Followup_Appointment_Given'].transform(
+        [followup_appointment]
+    )[0]
+
     input_df = pd.DataFrame([{
         'Maternal_Age': maternal_age,
         'Parity': parity,
@@ -287,21 +384,24 @@ try:
         'Apgar_5min': apgar_score,
         'Feeding_Type_at_Discharge': feeding_encoded,
         'Duration_of_Initial_Stay_Days': length_of_stay,
-        'Discharge_Condition': discharge_encoded
+        'Discharge_Condition': discharge_encoded,
+        'Followup_Appointment_Given': followup_encoded
     }])
 
     input_scaled = scaler.transform(input_df)
 
-    readmission_probability = float(
-        rf_model.predict_proba(input_scaled)[0][1]
-    )
+    prediction_probs = rf_model.predict_proba(input_scaled)[0]
+
+    readmission_probability = float(prediction_probs[1])
+    model_confidence = float(max(prediction_probs))
 
 except Exception as e:
 
     st.error(f"Model Prediction Error: {e}")
 
     readmission_probability = 0.50
-
+    model_confidence = 0.0
+    
 # Resolve precise guidelines text and routing paths based on metrics
 if readmission_probability >= 0.70:
     risk_tier, alert_color = "High Risk", "error"
@@ -346,15 +446,19 @@ if st.session_state.assessment_triggered:
     else:
         st.markdown(f"""<div style="background-color: #D1FAE5; border-left: 6px solid #059669; padding: 15px; border-radius: 4px; margin-bottom: 15px;"><strong style="color: #065F46; font-size: 16px;">{status_text}</strong></div>""", unsafe_allow_html=True)
         
-    st.info(guidelines)
-    
+        st.info(guidelines)
+
+    st.metric(
+        "Model Confidence",
+        f"{model_confidence*100:.1f}%"
+    )
     st.markdown("""
         <div class="decision-canvas">
             <h4 style="color:#000000; margin:0 0 5px 0;">CLINICAL DIRECTIVE</h4>
             <p style="font-size:13px; color:#000000; margin:0;">Based on the mathematical parameters evaluated above, the system has calculated the following definitive action route for the medical team.</p>
         </div>
     """, unsafe_allow_html=True)
-    
+    st.progress(float(readmission_probability))
     st.markdown(f"Authoritative Ward Disposition Route:")
     st.markdown(f"""<div class="final-decision-banner">{final_decision_path}</div>""", unsafe_allow_html=True)
 
@@ -431,23 +535,33 @@ st.markdown("""
 if os.path.exists(DB_FILE) and os.path.getsize(DB_FILE) > 0:
     try:
         history_df = pd.read_csv(DB_FILE)
-        st.metric(label="Total System Logged Consultations", value=len(history_df))
-        
+
+        st.metric(
+            label="Total System Logged Consultations",
+            value=len(history_df)
+        )
+
         st.dataframe(
-            history_df.sort_values(by="Consultation Timestamp", ascending=False),
+            history_df.sort_values(
+                by="Consultation Timestamp",
+                ascending=False
+            ),
             use_container_width=True,
             hide_index=True
         )
-        
-        csv_data = history_df.to_csv(index=False).encode('utf-8')
+
+        csv_data = history_df.to_csv(index=False).encode("utf-8")
+
         st.download_button(
             label="Export Excel Spreadsheet",
             data=csv_data,
             file_name=f"mgh_cdss_audit_export_{datetime.now().strftime('%Y%m%d_%H%M')}.csv",
             mime="text/csv"
         )
+
     except Exception as e:
         st.error(f"Error parsing historical tracking files: {e}")
+
 else:
     st.info("No records are currently logged in the relational database ledger.")
     # ==============================================================================
