@@ -191,7 +191,12 @@ active_role = USER_CREDENTIALS[st.session_state.current_user]["role"]
 # 2. LOCAL DATA STORAGE AND MANAGEMENT SUBSYSTEM
 # ==============================================================================
 DB_FILE = "saved_predictions.csv"
-
+def safe_encode(encoders, key, value):
+    encoder = encoders.get(key)
+    if encoder is None:
+        return 0
+    return encoder.transform([value])[0]
+    
 rf_model = joblib.load("models/rf_model.joblib")
 scaler = joblib.load("models/scaler.joblib")
 encoders = joblib.load("models/categorical_encoders.joblib")
@@ -362,9 +367,12 @@ try:
         [discharge_condition]
     )[0]
 
-    followup_encoded = encoders['Followup_Appointment_Given'].transform(
-        [followup_appointment]
-    )[0]
+  followup_encoder = encoders.get('Followup_Appointment_Given')
+
+if followup_encoder is None:
+    followup_encoded = 0
+else:
+    followup_encoded = followup_encoder.transform([followup_appointment])[0]
 
     input_df = pd.DataFrame([{
         'Maternal_Age': maternal_age,
