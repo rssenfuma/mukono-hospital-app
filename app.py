@@ -350,30 +350,20 @@ discharge_condition = st.sidebar.selectbox("Discharge Physical Condition", ["Sta
 # 4. RANDOM FOREST MACHINE LEARNING PREDICTION ENGINE
 # ==============================================================================
 try:
+    mode_delivery_encoded = encoders['Mode_of_Delivery'].transform([mode_of_delivery])[0]
 
-    mode_delivery_encoded = encoders['Mode_of_Delivery'].transform(
-        [mode_of_delivery]
-    )[0]
+    sex_encoded = encoders['Sex_of_Neonate'].transform([sex_neonate])[0]
 
-    sex_encoded = encoders['Sex_of_Neonate'].transform(
-        [sex_neonate]
-    )[0]
+    feeding_encoded = encoders['Feeding_Type_at_Discharge'].transform([feeding_type])[0]
 
-    feeding_encoded = encoders['Feeding_Type_at_Discharge'].transform(
-        [feeding_type]
-    )[0]
+    discharge_encoded = encoders['Discharge_Condition'].transform([discharge_condition])[0]
 
-    discharge_encoded = encoders['Discharge_Condition'].transform(
-        [discharge_condition]
-    )[0]
+    followup_encoder = encoders.get('Followup_Appointment_Given')
 
-  followup_encoder = encoders.get('Followup_Appointment_Given')
-
-if followup_encoder is None:
-    followup_encoded = 0
-else:
-    followup_encoded = followup_encoder.transform([followup_appointment])[0]
-
+    if followup_encoder is None:
+        followup_encoded = 0
+    else:
+        followup_encoded = followup_encoder.transform([followup_appointment])[0]
     input_df = pd.DataFrame([{
         'Maternal_Age': maternal_age,
         'Parity': parity,
