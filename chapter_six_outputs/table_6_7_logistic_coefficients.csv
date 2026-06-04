@@ -1,0 +1,13 @@
+Feature,Coefficient
+Duration_of_Initial_Stay_Days,1.2040848450573238
+Maternal_Age,0.02380781014189392
+Parity,-0.22949019330685577
+Mode_of_Delivery,-0.2720413343916384
+Feeding_Type_at_Discharge,-0.27438704282312465
+Sex_of_Neonate,-0.5768165118716335
+Apgar_5min,-0.6918632044853726
+ANC_Attendance_Visits,-1.2617345488509593
+Discharge_Condition,-1.3457835351592482
+Birth_Weight_kg,-1.7917034895062345
+Followup_Appointment_Given,-1.818372252500322
+Gestational_Age_Weeks,-1.9233664089099247

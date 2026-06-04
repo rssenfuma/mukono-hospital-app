@@ -1,0 +1,14 @@
+Column,Original_Value,Encoded_Value
+Mode_of_Delivery,Assisted Vaginal Delivery,0
+Mode_of_Delivery,Caesarean Section,1
+Mode_of_Delivery,Normal Vaginal Delivery,2
+Sex_of_Neonate,Female,0
+Sex_of_Neonate,Male,1
+Feeding_Type_at_Discharge,Exclusive Breastfeeding,0
+Feeding_Type_at_Discharge,Formula Only,1
+Feeding_Type_at_Discharge,Mixed Feeding,2
+Discharge_Condition,Critical,0
+Discharge_Condition,Improved,1
+Discharge_Condition,Stable,2
+Followup_Appointment_Given,No,0
+Followup_Appointment_Given,Yes,1
