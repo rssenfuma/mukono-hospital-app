@@ -195,6 +195,7 @@ DB_FILE = "saved_predictions.csv"
 rf_model = joblib.load("models/rf_model.joblib")
 scaler = joblib.load("models/scaler.joblib")
 encoders = joblib.load("models/categorical_encoders.joblib")
+st.write("ENCODER KEYS:", encoders.keys())
 # ==============================================================================
 # MODEL INFORMATION
 # ==============================================================================
